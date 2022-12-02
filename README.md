@@ -1,7 +1,7 @@
 # adventOfCode2022
 
-![](https://img.shields.io/badge/days%20completed-1-red)
-![](https://img.shields.io/badge/stars%20⭐-2-yellow)
+![](https://img.shields.io/badge/days%20completed-2-red)
+![](https://img.shields.io/badge/stars%20⭐-4-yellow)
 
 Welcome to the Advent of Code[^aoc] Kotlin project created by [j4velin][github] using the [Advent of Code Kotlin Template][template] delivered by JetBrains.
 
