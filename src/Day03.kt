@@ -1,10 +1,7 @@
-fun findCommonItem(vararg compartments: String): Char {
-    var intersect = compartments.first().toCharArray().toSet()
-    compartments.drop(1).map { it.toCharArray().toSet() }.forEach { intersect = intersect.intersect(it) }
-    return intersect.first()
-}
+private fun findCommonItem(vararg compartments: String): Char =
+    findCommon(*compartments.map { it.toCharArray().toSet() }.toTypedArray())
 
-val Char.priority: Int
+private val Char.priority: Int
     get() = if (isLowerCase()) {
         this - 'a' + 1
     } else {

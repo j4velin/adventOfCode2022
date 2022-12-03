@@ -36,3 +36,12 @@ fun <T> List<T>.separateBy(predicate: (T) -> Boolean): List<List<T>> {
     list.add(sublist)
     return list
 }
+
+/**
+ * Finds a random common item in the given collections or throws a [NoSuchElementException] if there is none
+ */
+fun <T> findCommon(vararg collections: Collection<T>): T {
+    var intersect = collections.first().toSet()
+    collections.drop(1).map { it.toSet() }.forEach { intersect = intersect.intersect(it) }
+    return intersect.first()
+}
