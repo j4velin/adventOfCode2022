@@ -1,0 +1,12 @@
+name: Update AoC Badges 2022
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - src/aoc2022/*
+
+jobs:
+  update:
+    uses: ./.github/workflows/aoc_badge.yml
+    with:
+      year: 2022
