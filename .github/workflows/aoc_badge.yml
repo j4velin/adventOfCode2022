@@ -5,6 +5,12 @@ on:
       year:
         required: true
         type: string
+      starsRegex:
+        required: true
+        type: string
+      daysCompletedRegex:
+        required: true
+        type: string
     secrets:
       AOC_SESSION_ID:
         required: true
@@ -21,8 +27,8 @@ jobs:
           session: ${{ secrets.AOC_SESSION_ID }}
           year: ${{ inputs.year }}
           file: 'README.md'
-          starsRegex: "(?<=\[stars${{ inputs.year }}\]https:\/\/img\.shields\.io\/badge\/stars%20⭐-)[0-9]+(?=-yellow)"
-          daysCompletedRegex: "(?<=\[days${{ inputs.year }}\]https:\/\/img\.shields\.io\/badge\/days%20completed-)[0-9]+(?=-red)"
+          starsRegex: ${{ inputs.starsRegex }}
+          daysCompletedRegex: ${{ inputs.daysCompletedRegex }}
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
