@@ -8,6 +8,7 @@ on:
 jobs:
   update:
     uses: ./.github/workflows/aoc_badge.yml
+    secrets: inherit
     with:
       year: 2022
       starsRegex: '(?<=\[stars2022\]\(https:\/\/img\.shields\.io\/badge\/stars%20⭐-)[0-9]+(?=-yellow)'
