@@ -1,0 +1,2 @@
+aoc2021.Player 1 starting position: 4
+aoc2021.Player 2 starting position: 8

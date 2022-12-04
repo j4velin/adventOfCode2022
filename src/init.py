@@ -1,0 +1,30 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import os
+
+
+year = 2022
+
+dir = 'aoc' + str(year)
+os.makedirs(dir, exist_ok=True)
+
+for i in range(1,24):
+    if i < 10:
+        day = 'Day0' + str(i)
+    else:
+        day = 'Day' + str(i)
+    open(os.path.join(dir, day + '.txt'), 'w').close()
+    open(os.path.join(dir, day + '_test.txt'), 'w').close()
+    with open(os.path.join(dir, day + '.kt'), 'w') as f:
+        f.write('package ' + dir + '\n\n')
+        f.write('import readInput\n\n')
+        f.write('fun aoc2022.aoc2021.main() {\n\n')
+        f.write('\tfun aoc2021.part1(input: List<String>) : Int {\n\t\treturn 0\n\t}\n\n')
+        f.write('\tfun aoc2021.part2(input: List<String>) : Int {\n\t\treturn 0\n\t}\n\n')
+        f.write('\tval testInput = readInput("' + day + '_test")\n')
+        f.write('\tcheck(aoc2021.part1(testInput) == 0)\n')
+        f.write('\tcheck(aoc2021.part2(testInput) == 0)\n\n')
+        f.write('\tval input = readInput("' + day + '")\n')
+        f.write('\tprintln(aoc2021.part1(input))\n')
+        f.write('\tprintln(aoc2021.part1(input))\n')
+        f.write('}\n')

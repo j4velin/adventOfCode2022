@@ -1,3 +1,8 @@
+package aoc2022
+
+import findCommon
+import readInput
+
 private fun findCommonItem(vararg compartments: String): Char =
     findCommon(*compartments.map { it.toCharArray().toSet() }.toTypedArray())
 

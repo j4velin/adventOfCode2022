@@ -1,3 +1,6 @@
+package aoc2022
+
+import readInput
 import java.lang.IllegalArgumentException
 
 enum class Shape(val value: Int) {

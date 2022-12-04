@@ -1,3 +1,8 @@
+package aoc2022
+
+import readInput
+import separateBy
+
 fun main() {
 
     data class Elf(val calories: Int)
