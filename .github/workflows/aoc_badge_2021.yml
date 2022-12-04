@@ -1,0 +1,15 @@
+name: Update AoC Badges 2021
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - src/aoc2021/*
+
+jobs:
+  update:
+    uses: ./.github/workflows/aoc_badge.yml
+    secrets: inherit
+    with:
+      year: 2021
+      starsRegex: '(?<=\[stars2021\]\(https:\/\/img\.shields\.io\/badge\/stars%20⭐-)[0-9]+(?=-yellow)'
+      daysCompletedRegex: '(?<=\[days2021\]\(https:\/\/img\.shields\.io\/badge\/days%20completed-)[0-9]+(?=-red)'
