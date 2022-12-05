@@ -12,11 +12,11 @@ fun main() {
 		return 0
 	}
 
-	val testInput = readInput("Day14_test")
+	val testInput = readInput("Day14", 2022)
 	check(part1(testInput) == 0)
 	check(part2(testInput) == 0)
 
-	val input = readInput("Day14")
+	val input = readInput("Day14", 2022)
 	println(part1(input))
-	println(part1(input))
+	println(part2(input))
 }

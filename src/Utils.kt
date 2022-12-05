@@ -1,12 +1,13 @@
 import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.*
 import kotlin.math.absoluteValue
 
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String) = File("src", "$name.txt")
+fun readInput(name: String, year: Int = 2021) = File("src/aoc$year", "$name.txt")
     .readLines()
 
 /**
@@ -91,4 +92,11 @@ fun <T> findCommon(vararg collections: Collection<T>): T {
     var intersect = collections.first().toSet()
     collections.drop(1).map { it.toSet() }.forEach { intersect = intersect.intersect(it) }
     return intersect.first()
+}
+
+fun <T> Stack<T>.popTo(other: Stack<T>, count: Int = 1) {
+    repeat(count) {
+        val element = this.pop()
+        other.add(element)
+    }
 }
