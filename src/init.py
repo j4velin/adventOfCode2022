@@ -23,7 +23,7 @@ for i in range(1,24):
         f.write('fun main() {\n\n')
         f.write('\tfun part1(input: List<String>) : Int {\n\t\treturn 0\n\t}\n\n')
         f.write('\tfun part2(input: List<String>) : Int {\n\t\treturn 0\n\t}\n\n')
-        f.write('\tval testInput = readInput("' + day + '", ' + str(year) + ')\n')
+        f.write('\tval testInput = readInput("' + day + '_test", ' + str(year) + ')\n')
         f.write('\tcheck(part1(testInput) == 0)\n')
         f.write('\tcheck(part2(testInput) == 0)\n\n')
         f.write('\tval input = readInput("' + day + '", ' + str(year) + ')\n')
