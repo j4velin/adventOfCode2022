@@ -1,25 +1,32 @@
 package aoc2022
 
 import readInput
+import java.util.*
 
-sealed class FileSystemElement(val name: String) {
+sealed class FileSystemElement(val name: String, val parent: Directory?) {
     abstract val size: Int
+
+    override fun hashCode() = Objects.hash(name, parent)
+
+    override fun equals(other: Any?) = other is FileSystemElement && this::class.isInstance(other) &&
+            Objects.equals(name, other.name) && Objects.equals(parent, other.parent)
 }
 
-class Directory(name: String, val parent: Directory?) : FileSystemElement(name) {
+class Directory(name: String, parent: Directory?) : FileSystemElement(name, parent) {
+    // could be cached and only updated when a new element is added, but works okay for this input size
     override val size: Int
         get() = elements.sumOf { it.size }
+
     val elements = mutableSetOf<FileSystemElement>()
+
     override fun toString(): String {
         return "- $name (dir)\n" + elements.joinToString(separator = "\n") { "  $it" }
             .split("\n").joinToString(separator = "\n") { "  $it" }
     }
 }
 
-class File(name: String, override val size: Int) : FileSystemElement(name) {
-    override fun toString(): String {
-        return "- $name (file, size=$size)"
-    }
+class File(name: String, override val size: Int, parent: Directory?) : FileSystemElement(name, parent) {
+    override fun toString() = "- $name (file, size=$size)"
 }
 
 
@@ -35,13 +42,20 @@ fun main() {
             when {
                 it.startsWith("$ cd /") -> currentDirectory = root
                 it.startsWith("$ cd ..") -> currentDirectory = currentDirectory.parent ?: root
-                it.startsWith("$ cd ") -> currentDirectory =
-                    currentDirectory.elements.filterIsInstance<Directory>().first { e -> e.name == it.substring(5) }
+                it.startsWith("$ cd ") -> {
+                    currentDirectory = currentDirectory.elements.filterIsInstance<Directory>()
+                        .firstOrNull { e -> e.name == it.substring(5) } ?: run {
+                        // in case we haven't executed a 'ls' command in this directory yet
+                        val newDir = Directory(it.substring(4), currentDirectory)
+                        currentDirectory.elements.add(newDir)
+                        newDir
+                    }
+                }
                 it.startsWith("$ ls") -> {} // ignore
                 it.startsWith("dir ") -> currentDirectory.elements.add(Directory(it.substring(4), currentDirectory))
                 else -> {
                     val (size: String, name: String) = it.split(" ")
-                    currentDirectory.elements.add(File(name, size.toInt()))
+                    currentDirectory.elements.add(File(name, size.toInt(), currentDirectory))
                 }
             }
         }
