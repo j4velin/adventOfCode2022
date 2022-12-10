@@ -3,8 +3,8 @@
 
 | 2022         | 2021        |
 |--------------|-------------|
-| ![days2022](https://img.shields.io/badge/days%20completed-9-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
-| ![stars2022](https://img.shields.io/badge/stars%20⭐-18-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
+| ![days2022](https://img.shields.io/badge/days%20completed-10-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
+| ![stars2022](https://img.shields.io/badge/stars%20⭐-20-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
 
 
 
