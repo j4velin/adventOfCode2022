@@ -18,7 +18,8 @@ fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteA
     .padStart(32, '0')
 
 
-fun Int.modulo(mod: Int) = if (this > mod) this % mod else this
+infix fun Int.modulo(mod: Int) = if (this > mod) this % mod else this
+infix fun Long.modulo(mod: Long) = if (this > mod) this % mod else this
 
 /**
  * Generates a "cartesian product" of two sequences
