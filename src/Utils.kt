@@ -36,7 +36,7 @@ data class Point(val x: Int, val y: Int) {
 
     /**
      * @param withDiagonal true to also include diagonal neighbours
-     * @param validGrid optional area (pair of top left and upper right corner) in which the neighbours must be within
+     * @param validGrid optional area (pair of bottom left and upper right corner) in which the neighbours must be within
      * @return the neighbouring points of this point
      */
     fun getNeighbours(withDiagonal: Boolean = false, validGrid: Pair<Point, Point>? = null) = buildSet {
