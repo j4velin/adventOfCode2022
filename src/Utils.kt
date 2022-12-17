@@ -53,6 +53,8 @@ data class Point(val x: Int, val y: Int) {
         }
     }
 
+    infix operator fun plus(other:Point) = move(other.x, other.y)
+
     /**
      * @param dx the delta in x direction
      * @param dy the delta in y direction
