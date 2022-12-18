@@ -26,26 +26,26 @@ private enum class RockShape(val points: Collection<Point>) {
 
 private class Rock(val shape: RockShape, top: Int) {
 
-    var points = shape.points.map { it + Point(2, top + 4) }
+    var points = shape.points.map { it + Point(2, top + 3) }
         private set
 
-    fun moveLeft(topPoints: IntArray) {
+    fun moveLeft(blocked: Collection<Point>) {
         val tmp = points.map { it.move(-1, 0) }
-        if (tmp.all { it.x >= 0 && topPoints[it.x] < it.y }) {
+        if (tmp.all { it.x >= 0 && !blocked.contains(it) }) {
             this.points = tmp
         }
     }
 
-    fun moveRight(topPoints: IntArray) {
+    fun moveRight(blocked: Collection<Point>) {
         val tmp = points.map { it.move(1, 0) }
-        if (tmp.all { it.x < 7 && topPoints[it.x] < it.y }) {
+        if (tmp.all { it.x < 7 && !blocked.contains(it) }) {
             this.points = tmp
         }
     }
 
-    fun moveDown(topPoints: IntArray): Boolean {
+    fun moveDown(blocked: Collection<Point>): Boolean {
         val tmp = points.map { it.move(0, -1) }
-        val allowed = tmp.all { it.y >= 0 && topPoints[it.x] < it.y }
+        val allowed = tmp.all { it.y >= 0 && !blocked.contains(it) }
         if (allowed) {
             this.points = tmp
         }
@@ -65,7 +65,8 @@ private fun getHeight(input: List<String>, maxRocks: Long): Long {
             yieldAll(input.first().toCharArray().withIndex().toList())
         }
     }.iterator()
-    val topPoints = IntArray(7)
+    val topPoints = IntArray(7) { -1 }
+    var blockedPoints = mutableSetOf<Point>()
     var offset = 0L
     var rocks = 0L
     var missingRocks = maxRocks
@@ -74,25 +75,26 @@ private fun getHeight(input: List<String>, maxRocks: Long): Long {
     RockShape.sequence.takeWhile { missingRocks > 0 }.forEach { shape ->
         missingRocks--
         rocks++
-        val rock = Rock(shape, topPoints.max())
+        val rock = Rock(shape, topPoints.max() + 1)
         var moved = true
         var jetIndex = -1
         while (moved) {
             val nextJet = jetIterator.next()
             jetIndex = nextJet.index
             if (nextJet.value == '>') {
-                rock.moveRight(topPoints)
+                rock.moveRight(blockedPoints)
             } else {
-                rock.moveLeft(topPoints)
+                rock.moveLeft(blockedPoints)
             }
-            moved = rock.moveDown(topPoints)
+            moved = rock.moveDown(blockedPoints)
         }
+        blockedPoints.addAll(rock.points)
         for (p in rock.points) {
             topPoints[p.x] = max(topPoints[p.x], p.y)
         }
         if (!patternFound) {
             val min = topPoints.min()
-            if (min > 0) {
+            if (min > 2) {
                 val pattern = Pattern(jetIndex, rock.shape, topPoints.clone().asList())
                 pattern.offset = offset
                 pattern.rocks = rocks
@@ -109,11 +111,12 @@ private fun getHeight(input: List<String>, maxRocks: Long): Long {
                     for (i in topPoints.indices) {
                         topPoints[i] = topPoints[i] - min
                     }
+                    blockedPoints = blockedPoints.map { it.move(0, -min) }.filter { it.y >= 0 }.toMutableSet()
                 }
             }
         }
     }
-    return topPoints.max() + offset
+    return topPoints.max() + offset + 1
 }
 
 private fun part1(input: List<String>) = getHeight(input, 2022L).toInt()
@@ -124,8 +127,8 @@ fun main() {
     val testInput = readInput("Day17_test", 2022)
     check(part1(testInput) == 3068)
     check(part2(testInput) == 1514285714288L)
-
     val input = readInput("Day17", 2022)
     println(part1(input))
     println(part2(input))
+
 }
