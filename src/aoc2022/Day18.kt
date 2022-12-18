@@ -22,24 +22,48 @@ private data class Point3(val x: Int, val y: Int, val z: Int) {
     }
 
     fun getExposedSides(points: Collection<Point3>) = 6 - neighbours.count { points.contains(it) }
+
+    fun getExteriorSurfaceSides(isOutSide: (Point3) -> Boolean) = neighbours.count { isOutSide(it) }
 }
 
-private data class LavaDroplet(val shapePoints: Collection<Point3>) {
+private data class LavaDroplet(private val shapePoints: Collection<Point3>) {
     val surfaceArea by lazy { shapePoints.sumOf { it.getExposedSides(shapePoints) } }
     val exteriorSurfaceArea by lazy {
-        /*
-        TODO
         val max = Point3(shapePoints.maxOf { it.x }, shapePoints.maxOf { it.y }, shapePoints.maxOf { it.z })
-        val maxVolume = max.x * max.y * max.z
-        for (x in 0..max.x) {
-            for (y in 0..max.y) {
-                for (z in 0..max.z) {
 
+        val rangeX = 0..max.x
+        val rangeY = 0..max.y
+        val rangeZ = 0..max.z
+        val outsideCubes = mutableSetOf<Point3>()
+        val isOutside: (Point3) -> Boolean =
+            { p -> outsideCubes.contains(p) || !rangeX.contains(p.x) || !rangeY.contains(p.y) || !rangeZ.contains(p.z) }
+
+        for (x in max.x downTo 0) {
+            for (y in max.y downTo 0) {
+                for (z in max.z downTo 0) {
+                    val point = Point3(x, y, z)
+                    if (!shapePoints.contains(point)) {
+                        // empty (inside or outside)
+                        val uncheckedNeighbours = point.neighbours.filter { !shapePoints.contains(it) }.toMutableSet()
+                        val emptyConnectedPoints = mutableSetOf(point)
+                        while (uncheckedNeighbours.isNotEmpty()) {
+                            val n = uncheckedNeighbours.random()
+                            uncheckedNeighbours.remove(n)
+                            if (isOutside(n)) {
+                                outsideCubes.addAll(emptyConnectedPoints)
+                                break
+                            } else {
+                                emptyConnectedPoints.add(n)
+                                uncheckedNeighbours.addAll(n.neighbours.filter { !shapePoints.contains(it) }
+                                    .filter { !uncheckedNeighbours.contains(it) && !emptyConnectedPoints.contains(it) })
+                            }
+                        }
+                    }
                 }
             }
         }
-         */
-        0
+
+        shapePoints.sumOf { it.getExteriorSurfaceSides(isOutside) }
     }
 }
 
