@@ -1,14 +1,12 @@
 package aoc2022
 
 import readInput
-import kotlin.math.ceil
 import kotlin.math.max
 
 private enum class Material { ORE, CLAY, OBSIDIAN, GEODE }
 private typealias Robot = Material
 
 private data class BuildCost(val type: Material, val amount: Int)
-
 
 private data class Blueprint(val id: Int, val costs: Map<Robot, List<BuildCost>>) {
     companion object {
@@ -30,63 +28,35 @@ private data class Blueprint(val id: Int, val costs: Map<Robot, List<BuildCost>>
     }
 
     override fun toString() = id.toString()
+
+    val maxCost by lazy {
+        intArrayOf(
+            costs.values.maxOf { buildCosts -> buildCosts.find { it.type == Material.ORE }?.amount ?: 0 },
+            costs.values.maxOf { buildCosts -> buildCosts.find { it.type == Material.CLAY }?.amount ?: 0 },
+            costs.values.maxOf { buildCosts -> buildCosts.find { it.type == Material.OBSIDIAN }?.amount ?: 0 },
+            Int.MAX_VALUE
+        )
+    }
+    val obsidianForGeode = costs[Material.GEODE]!!.find { it.type == Material.OBSIDIAN }!!.amount
+    val clayForObsidian = costs[Material.OBSIDIAN]!!.find { it.type == Material.CLAY }!!.amount
 }
 
-private data class Duration(val robot: Robot, val ticks: Int)
-
-private data class State(
+private class State(
     val blueprint: Blueprint,
+    val timePassed: Int,
+    val remainingTime: Int,
     val inventory: IntArray,
     val robots: IntArray
 ) {
     fun canBuild(robot: Robot) =
         blueprint.costs[robot]!!.all { (material, amount) -> inventory[material.ordinal] >= amount }
 
-    fun getBuildDuration(): List<Duration> {
-
-        // for GEODE
-        val costGeode = blueprint.costs[Material.GEODE]!!
-        val obsidianForGeode = costGeode.find { it.type == Material.OBSIDIAN }!!.amount
-        val oreForGeode = costGeode.find { it.type == Material.ORE }!!.amount
-
-        val timeForGeode = if (robots[Robot.OBSIDIAN.ordinal] > 0) {
-            Duration(
-                Robot.GEODE,
-                max(obsidianForGeode / robots[Robot.OBSIDIAN.ordinal], oreForGeode / robots[Robot.ORE.ordinal])
-            )
-        } else {
-            Duration(Robot.GEODE, Int.MAX_VALUE)
-        }
-
-        // for Obsidian
-        val costObsidian = blueprint.costs[Material.OBSIDIAN]!!
-        val clayForObsidian = costObsidian.find { it.type == Material.CLAY }!!.amount
-        val oreForObsidian = costObsidian.find { it.type == Material.ORE }!!.amount
-
-        val timeForObsidian = if (robots[Robot.CLAY.ordinal] > 0) {
-            Duration(
-                Robot.OBSIDIAN,
-                max(clayForObsidian / robots[Robot.CLAY.ordinal], oreForObsidian / robots[Robot.ORE.ordinal])
-            )
-        } else {
-            Duration(Robot.OBSIDIAN, Int.MAX_VALUE)
-        }
-
-        // for Clay
-        val costClay = blueprint.costs[Material.CLAY]!!
-        val oreForClay = costClay.find { it.type == Material.ORE }!!.amount
-
-        val timeForClay = Duration(Robot.CLAY, oreForClay / robots[Robot.ORE.ordinal])
-
-        // for Ore
-        val costOre = blueprint.costs[Material.ORE]!!
-        val oreForOre = costOre.find { it.type == Material.ORE }!!.amount
-
-        val timeForOre = Duration(Robot.ORE, oreForOre / robots[Robot.ORE.ordinal])
-
-        val priority = listOf(timeForGeode, timeForObsidian, timeForClay, timeForOre)
-
-        return priority.sortedByDescending { it.ticks }
+    fun shouldBuild(robot: Robot): Boolean {
+        if (robot == Robot.GEODE) return true
+        // false, if we already produce more than the most expensive robot costs
+        return (robots[robot.ordinal] < blueprint.maxCost[robot.ordinal]) &&
+                // or our inventory is already full enough to the build most expensive robot in each remaining round
+                (inventory[robot.ordinal] < blueprint.maxCost[robot.ordinal] * remainingTime)
     }
 
     fun harvest(): State {
@@ -94,7 +64,7 @@ private data class State(
         Robot.values().forEach { type ->
             newInventory[type.ordinal] = inventory[type.ordinal] + robots[type.ordinal]
         }
-        return State(blueprint, newInventory, robots)
+        return State(blueprint, timePassed + 1, remainingTime - 1, newInventory, robots)
     }
 
     fun build(robot: Robot): State {
@@ -104,116 +74,102 @@ private data class State(
             newInventory[material.ordinal] = inventory[material.ordinal] - amount
         }
         newRobots[robot.ordinal] = robots[robot.ordinal] + 1
-        return State(blueprint, newInventory, newRobots)
+        return State(blueprint, timePassed, remainingTime, newInventory, newRobots)
+    }
+
+    /**
+     * Upper bound on how much geode we can harvest in this state
+     */
+    val maxGeodePossible by lazy {
+        var geodeRobots = robots[Robot.GEODE.ordinal]
+        var obsidianRobots = robots[Robot.OBSIDIAN.ordinal]
+        var clayRobots = robots[Robot.CLAY.ordinal]
+        var geodes = inventory[Material.GEODE.ordinal]
+        var obsidian = inventory[Material.OBSIDIAN.ordinal]
+        var clay = inventory[Material.CLAY.ordinal]
+
+        repeat(remainingTime) {
+            // for the maximum, we can just assume that we build every possible robot in each round (ignoring ore as we
+            // should be able to "build nothing" to save ore etc.)
+            if (obsidian >= blueprint.obsidianForGeode) {
+                geodeRobots++
+                obsidianRobots++
+                clayRobots++
+                obsidian -= blueprint.obsidianForGeode
+            } else if (clay >= blueprint.clayForObsidian) {
+                obsidianRobots++
+                clayRobots++
+                clay -= blueprint.clayForObsidian
+            } else {
+                clayRobots++
+            }
+            geodes += geodeRobots
+            obsidian += obsidianRobots
+            clay += clayRobots
+        }
+        geodes
     }
 }
 
-private fun collectGeodes(minute: Int, state: State): Int {
+private var globalBest = 0
 
-    println("=== $minute ===")
-    println("State: $state")
-    val remainingTime = 24 - minute
-    if (remainingTime == 0) {
+private fun collectGeodesRecursive(state: State): Int {
+    return if (state.remainingTime == 1) {
         val s = state.harvest()
-        println()
-        println("\t\tFINAL STATE: GEODE = ${s.inventory[Material.GEODE.ordinal]} -> $s")
-        println()
-        return s.inventory[Material.GEODE.ordinal]
-    }
-
-    val durations = state.getBuildDuration()//.map { it.robot }
-    println("   durations: $durations")
-
-    val calculateWaitingTime: (Robot, State) -> Int = { robot, s ->
-        s.blueprint.costs[robot]!!.maxOfOrNull { c ->
-            val missing = c.amount - s.inventory[c.type.ordinal]
-            val div = s.robots[c.type.ordinal]
-            if (div == 0) Int.MAX_VALUE else ceil(missing / div.toFloat()).toInt()
-        } ?: Int.MAX_VALUE
-    }
-
-    val wouldReduceTimeFor: (Robot, Material) -> Boolean = { robot, material ->
-        val t0 = calculateWaitingTime(material, state)
-        val tmpState = state.harvest().build(robot)
-        var t1 = calculateWaitingTime(material, tmpState)
-        if (t1 != Int.MAX_VALUE) {
-            t1++
-            println("   building $robot would change waiting time for $material from ${if (t0 == Int.MAX_VALUE) "∞" else t0} to $t1")
-            t0 - t1 >= 0 || (t0 - t1 == -1 && remainingTime > 16) // TODO: increasing the build time now might be beneficial if there is much time left
-        } else {
-            false
-        }
-    }
-
-    var tobuild: Robot? = null
-    val canBuild = durations.filter { state.canBuild(it.robot) }
-    println("   can build: $canBuild")
-    canBuild.forEach {
-        if (tobuild == null) {
-            if (it.robot == Robot.GEODE) {
-                tobuild = it.robot
-            } else if ((it.robot == Robot.OBSIDIAN || it.robot == Robot.ORE) &&
-                wouldReduceTimeFor(it.robot, Material.GEODE)
-            ) {
-                println(" -> reduces time to GEODE -> build ${it.robot}")
-                tobuild = it.robot
-            } else if ((it.robot == Robot.CLAY || it.robot == Robot.ORE) &&
-                wouldReduceTimeFor(Robot.OBSIDIAN, Material.GEODE)
-            ) {
-                if (wouldReduceTimeFor(it.robot, Material.OBSIDIAN)) {
-                    tobuild = it.robot
-                    println(" -> reduces time to OBSIDIAN which reduces time to GEODE -> build ${it.robot}")
-                } else if (it.robot == Robot.ORE && wouldReduceTimeFor(Robot.CLAY, Material.OBSIDIAN) &&
-                    wouldReduceTimeFor(it.robot, Material.CLAY)
-                ) {
-                    tobuild = it.robot
-                    println(" -> reduces time to CLAY, which reduces time to OBSIDIAN which reduces time to GEODE -> build ${it.robot}")
-                }
-            }
-        }
-    }
-
-    // every robot harvests its material
-    val stateHarvesting = state.harvest()
-
-    // build, if there is a robot to build
-    val stateBuilding = if (tobuild != null && state.canBuild(tobuild!!)) {
-        println(" building $tobuild")
-        stateHarvesting.build(tobuild!!)
+        s.inventory[Material.GEODE.ordinal]
+    } else if (state.maxGeodePossible < globalBest) {
+        0
     } else {
-        stateHarvesting
-    }
-    println("State: $stateBuilding")
+        // every robot harvests its material
+        val stateHarvesting = state.harvest()
 
-    return collectGeodes(minute + 1, stateBuilding)
+        // build nothing
+        var bestResult = collectGeodesRecursive(stateHarvesting)
+
+        Robot.values().filter { state.canBuild(it) }.filter { state.shouldBuild(it) }.forEach { robot ->
+            val newState = stateHarvesting.build(robot)
+            val result = collectGeodesRecursive(newState)
+            bestResult = max(result, bestResult)
+        }
+
+        globalBest = max(bestResult, globalBest)
+
+        bestResult
+    }
 }
 
 private fun part1(input: List<String>): Int {
     val blueprints = input.map { Blueprint.fromString(it) }
-    val sumOfAllQualityLevels = blueprints.sumOf { blueprint ->
-        println("$blueprint (${blueprint.costs})")
+    return blueprints.sumOf { blueprint ->
+        globalBest = 0
+        val start = System.currentTimeMillis()
         val inventory = IntArray(Material.values().size)
         val robots = IntArray(Robot.values().size).also { it[Robot.ORE.ordinal] = 1 }
-        val scenario = State(
-            blueprint,
-            inventory,
-            robots,
-        )
-        val geodes = collectGeodes(1, scenario)
+        val state = State(blueprint, 0, 24, inventory, robots)
+        val geodes = collectGeodesRecursive(state)
+        println("Blueprint $blueprint -> $geodes, time=${System.currentTimeMillis() - start} ms")
         geodes * blueprint.id
     }
-    println("sumOfAllQualityLevels: $sumOfAllQualityLevels")
-    return sumOfAllQualityLevels
 }
 
 private fun part2(input: List<String>): Int {
-    return 1
+    val blueprints = input.map { Blueprint.fromString(it) }.take(3)
+    return blueprints.map { blueprint ->
+        globalBest = 0
+        val start = System.currentTimeMillis()
+        val inventory = IntArray(Material.values().size)
+        val robots = IntArray(Robot.values().size).also { it[Robot.ORE.ordinal] = 1 }
+        val state = State(blueprint, 0, 32, inventory, robots)
+        val geodes = collectGeodesRecursive(state)
+        println("Blueprint $blueprint -> $geodes, time=${System.currentTimeMillis() - start} ms")
+        geodes
+    }.reduce { acc, i -> acc * i }
 }
 
 fun main() {
     val testInput = readInput("Day19_test", 2022)
     check(part1(testInput) == 33)
-    check(part2(testInput) == 0)
+    check(part2(testInput) == 56 * 62)
 
     val input = readInput("Day19", 2022)
     println(part1(input))
