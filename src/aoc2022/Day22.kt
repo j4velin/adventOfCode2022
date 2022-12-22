@@ -65,9 +65,17 @@ object Day22 {
                 var newTile = ' '
                 var newPoint = newCoordinates
                 while (newTile == ' ') {
-                    val newY = (newPoint.y + diff.y + grid.size) % grid.size
-                    val newX = (newPoint.x + diff.x + grid[newY].size) % grid[newY].size
-                    newPoint = Point(newX, newY)
+                    if (direction == Direction.UP || direction == Direction.DOWN) {
+                        newPoint = Point(coords.x, (newPoint.y + diff.y + grid.size) % grid.size)
+                        // new line might not be as "width" as the current one (there is no ' '-padding on the right side)
+                        if (newPoint.x >= grid[newPoint.y].size) {
+                            newTile = ' '
+                            continue
+                        }
+                    } else {
+                        newPoint = Point((newPoint.x + diff.x + grid[coords.y].size) % grid[coords.y].size, coords.y)
+                    }
+
                     newTile = grid[newPoint.y][newPoint.x]
                 }
                 when (newTile) {
