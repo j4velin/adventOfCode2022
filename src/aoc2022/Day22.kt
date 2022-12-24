@@ -109,7 +109,7 @@ object Day22 {
 fun main() {
     val testInput = readInput("Day22_test", 2022)
     check(Day22.part1(testInput) == 6032)
-    check(Day22.part2(testInput) == 0)
+    check(Day22.part2(testInput) == 5031)
 
     val input = readInput("Day22", 2022)
     println(Day22.part1(input))
