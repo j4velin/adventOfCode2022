@@ -8,7 +8,7 @@ year = 2022
 dir = 'aoc' + str(year)
 os.makedirs(dir, exist_ok=True)
 
-for i in range(1,24):
+for i in range(1,26):
     if i < 10:
         day = 'Day0' + str(i)
     else:
