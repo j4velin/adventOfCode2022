@@ -2,6 +2,7 @@ import java.io.File
 import java.math.BigInteger
 import java.security.MessageDigest
 import java.util.*
+import kotlin.math.abs
 import kotlin.math.absoluteValue
 
 /**
@@ -53,7 +54,7 @@ data class Point(val x: Int, val y: Int) {
         }
     }
 
-    infix operator fun plus(other:Point) = move(other.x, other.y)
+    infix operator fun plus(other: Point) = move(other.x, other.y)
 
     /**
      * @param dx the delta in x direction
@@ -64,6 +65,8 @@ data class Point(val x: Int, val y: Int) {
 
     private fun isWithin(grid: Pair<Point, Point>) =
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
+
+    fun distanceTo(other: Point) = abs(x - other.x) + abs(y - other.y)
 }
 
 /**
