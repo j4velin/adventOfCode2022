@@ -2,7 +2,6 @@ package aoc2022
 
 import Point
 import readInput
-import kotlin.math.abs
 import kotlin.math.min
 
 object Day24 {
@@ -46,29 +45,49 @@ object Day24 {
             }
             Blizzard(newPosition, it.direction)
         })
-
-        fun print() {
-            for (y in 0..5) {
-                for (x in 0..7) {
-                    if (x == 0 || y == 0 || x == 7 || y == 5) {
-                        print("#")
-                    } else {
-                        val count = blizzards.count { it.position == Point(x, y) }
-                        if (count == 1) {
-                            print(blizzards.first { it.position == Point(x, y) }.direction)
-                        } else if (count > 1) {
-                            print(count.toString())
-                        } else {
-                            print(".")
-                        }
-                    }
-                }
-                println()
-            }
-        }
     }
 
     private data class State(val minute: Int, val position: Point, val blizzardConfig: BlizzardConfig)
+
+    private data class Result(val minDuration: Int, val finalBlizzardConfig: BlizzardConfig)
+
+    private fun move(
+        start: Point,
+        end: Point,
+        blizzardConfig: BlizzardConfig,
+        map: Array<CharArray>
+    ): Result {
+        val validGrid = Point(0, 0) to Point(map.first().size - 1, map.size - 1)
+        val toVisit = mutableListOf(State(0, start, blizzardConfig))
+        val minDistances = mutableMapOf<Pair<Point, Int>, Int>()
+        minDistances[start to blizzardConfig.hashCode()] = 0
+        var minDistanceToEnd = Int.MAX_VALUE
+        var blizzardConfigAtEnd = blizzardConfig
+        while (toVisit.isNotEmpty()) {
+            val current = toVisit.minBy { it.minute + it.position.distanceTo(end) }
+            toVisit.remove(current)
+            val (currentMinute, currentPosition, currentBlizzardConfig) = current
+            if (currentMinute + currentPosition.distanceTo(end) >= minDistanceToEnd) {
+                continue
+            } else if (currentPosition == end) {
+                minDistanceToEnd = min(minDistanceToEnd, currentMinute)
+                blizzardConfigAtEnd = currentBlizzardConfig
+            }
+            val neighbours = currentPosition.getNeighbours(validGrid = validGrid).filter { map[it.y][it.x] != '#' }
+            val nextConfig = currentBlizzardConfig.next(validGrid.second.x, validGrid.second.y)
+            val nextPositions = sequence {
+                yield(currentPosition) // also consider waiting at the current position
+                yieldAll(neighbours)
+            }
+            val next = nextPositions.filter { n -> nextConfig.blizzards.find { it.position == n } == null }
+                .map { it to nextConfig.hashCode() }
+                .filter { !minDistances.contains(it) || minDistances[it]!! > currentMinute + 1 }.onEach {
+                    minDistances[it] = currentMinute + 1
+                }.map { State(currentMinute + 1, it.first, nextConfig) }
+            toVisit.addAll(next)
+        }
+        return Result(minDistanceToEnd, blizzardConfigAtEnd)
+    }
 
 
     fun part1(input: List<String>): Int {
@@ -80,46 +99,32 @@ object Day24 {
         })
         val start = Point(map.first().indexOfFirst { it == '.' }, 0)
         val end = Point(map.last().indexOfFirst { it == '.' }, map.size - 1)
-        val validGrid = Point(1, 1) to Point(map.first().size - 1, map.size - 1)
 
-        val minDistances = mutableMapOf<Pair<Point, BlizzardConfig>, Int>()
-        val toVisit = mutableListOf(State(0, start, blizzardConfig))
-        minDistances[start to blizzardConfig] = 0
-        var minDistanceToEnd = Int.MAX_VALUE
-        while (toVisit.isNotEmpty()) {
-            val current = toVisit.minBy { it.minute + it.position.distanceTo(end) }
-            toVisit.remove(current)
-            val (currentMinute, currentPosition, currentBlizzardConfig) = current
-            if (currentMinute + currentPosition.distanceTo(end) >= minDistanceToEnd) {
-                continue
-            } else if (currentPosition == end) {
-                minDistanceToEnd = min(minDistanceToEnd, currentMinute)
-            }
-            val neighbours = currentPosition.getNeighbours(validGrid = validGrid).filter { map[it.y][it.x] != '#' }
-            val nextConfig = currentBlizzardConfig.next(validGrid.second.x, validGrid.second.y)
-            val nextPositions = sequence {
-                yield(currentPosition) // also consider waiting at the current position
-                yieldAll(neighbours)
-            }
-            val next = nextPositions.filter { n -> nextConfig.blizzards.find { it.position == n } == null }
-                .map { it to nextConfig }
-                .filter { !minDistances.contains(it) || minDistances[it]!! > currentMinute + 1 }.onEach {
-                    minDistances[it] = currentMinute + 1
-                }.map { State(currentMinute + 1, it.first, it.second) }
-            toVisit.addAll(next)
-        }
-        return minDistanceToEnd
+        return move(start, end, blizzardConfig, map).minDuration
     }
 
     fun part2(input: List<String>): Int {
-        return 0
+        val map = input.map { row -> row.toCharArray() }.toTypedArray()
+        val initialBlizzardConfig = BlizzardConfig(map.withIndex().flatMap { (y, row) ->
+            row.withIndex().filter { it.value != '#' && it.value != '.' }.map { (x, direction) ->
+                Blizzard(Point(x, y), Direction.fromChar(direction))
+            }
+        })
+        val start = Point(map.first().indexOfFirst { it == '.' }, 0)
+        val end = Point(map.last().indexOfFirst { it == '.' }, map.size - 1)
+
+        val startToEnd = move(start, end, initialBlizzardConfig, map)
+        val endToStart = move(end, start, startToEnd.finalBlizzardConfig, map)
+        val startToEndAgain = move(start, end, endToStart.finalBlizzardConfig, map)
+
+        return startToEnd.minDuration + endToStart.minDuration + startToEndAgain.minDuration
     }
 }
 
 fun main() {
     val testInput = readInput("Day24_test", 2022)
     check(Day24.part1(testInput) == 18)
-    check(Day24.part2(testInput) == 0)
+    check(Day24.part2(testInput) == 54)
 
     val input = readInput("Day24", 2022)
     println(Day24.part1(input))
