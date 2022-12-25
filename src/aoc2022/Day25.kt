@@ -17,7 +17,7 @@ object Day25 {
     private fun SNAFU.toDecimal(): Long {
         val array = this.toCharArray()
         var result = 0L
-        var multiplier = 1
+        var multiplier = 1L
         for (i in array.size - 1 downTo 0) {
             val decimalDigit = array[i].digitFromSNAFU()
             result += decimalDigit * multiplier
@@ -32,9 +32,10 @@ object Day25 {
         var carry = 0
         for (i in str.size - 1 downTo 0) {
             val digit = str[i].digitToInt() + carry
-            buffer += when (digit) {
-                3 -> '='
-                4 -> '-'
+            buffer += when {
+                digit == 3 -> '='
+                digit == 4 -> '-'
+                digit > 4 -> digit - 5
                 else -> digit
             }
             carry = if (digit >= 3) 1 else 0
@@ -47,9 +48,7 @@ object Day25 {
 
     fun part1(input: List<String>): String {
         val decimalSum = input.sumOf { it.toDecimal() }
-        val snafu = decimalSum.toSNAFU()
-        println("decimal: $decimalSum -> $snafu")
-        return snafu
+        return decimalSum.toSNAFU()
     }
 
     fun part2(input: List<String>): Int {
