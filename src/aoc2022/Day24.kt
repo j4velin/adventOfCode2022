@@ -95,7 +95,7 @@ object Day24 {
             } else if (currentPosition == end) {
                 minDistanceToEnd = min(minDistanceToEnd, currentMinute)
             }
-            val neighbours = currentPosition.getNeighbours(validGrid = validGrid)
+            val neighbours = currentPosition.getNeighbours(validGrid = validGrid).filter { map[it.y][it.x] != '#' }
             val nextConfig = currentBlizzardConfig.next(validGrid.second.x, validGrid.second.y)
             val nextPositions = sequence {
                 yield(currentPosition) // also consider waiting at the current position
