@@ -27,12 +27,29 @@ object Day25 {
     }
 
     private fun Long.toSNAFU(): String {
-        TODO()
+        val str = this.toString(5).toCharArray()
+        var buffer = ""
+        var carry = 0
+        for (i in str.size - 1 downTo 0) {
+            val digit = str[i].digitToInt() + carry
+            buffer += when (digit) {
+                3 -> '='
+                4 -> '-'
+                else -> digit
+            }
+            carry = if (digit >= 3) 1 else 0
+        }
+        if (carry > 0) {
+            buffer += carry
+        }
+        return buffer.reversed()
     }
 
     fun part1(input: List<String>): String {
         val decimalSum = input.sumOf { it.toDecimal() }
-        return decimalSum.toSNAFU()
+        val snafu = decimalSum.toSNAFU()
+        println("decimal: $decimalSum -> $snafu")
+        return snafu
     }
 
     fun part2(input: List<String>): Int {
