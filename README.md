@@ -1,10 +1,10 @@
 
 # Advent of Code
 
-| 2022         | 2021        |
-|--------------|-------------|
-| ![days2022](https://img.shields.io/badge/days%20completed-23-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
-| ![stars2022](https://img.shields.io/badge/stars%20⭐-48-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
+| 2023         | 2022         | 2021        |
+|--------------|--------------|-------------|
+| ![days2023](https://img.shields.io/badge/days%20completed-0-red) | ![days2022](https://img.shields.io/badge/days%20completed-23-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
+| ![stars2023](https://img.shields.io/badge/stars%20⭐-0-yellow)| ![stars2022](https://img.shields.io/badge/stars%20⭐-48-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
 
 
 
