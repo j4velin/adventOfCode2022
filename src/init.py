@@ -3,7 +3,7 @@
 import os
 
 
-year = 2022
+year = 2023
 
 dir = 'aoc' + str(year)
 os.makedirs(dir, exist_ok=True)
