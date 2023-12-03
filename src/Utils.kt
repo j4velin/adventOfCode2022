@@ -106,3 +106,11 @@ fun <T> Stack<T>.popTo(other: Stack<T>, count: Int = 1) {
         other.add(element)
     }
 }
+
+inline fun <T> Iterable<T>.multiplyOf(selector: (T) -> Int): Int {
+    var result = 1
+    for (element in this) {
+        result *= selector(element)
+    }
+    return result
+}
