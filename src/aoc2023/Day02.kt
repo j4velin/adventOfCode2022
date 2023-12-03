@@ -1,7 +1,9 @@
 package aoc2023
 
+import multiplyOf
 import readInput
 import java.util.*
+import kotlin.math.min
 
 private enum class Color { RED, GREEN, BLUE }
 
@@ -55,9 +57,7 @@ object Day02 {
             setOf(Cube(red, Color.RED), Cube(green, Color.GREEN), Cube(blue, Color.BLUE))
         }
         return input.map { Game.fromString(it) }.map { getMinimumSet(it) }.sumOf { minSet ->
-            var power = 1
-            minSet.map { it.amount }.forEach { power *= it }
-            power
+            minSet.multiplyOf { it.amount }
         }
     }
 }
