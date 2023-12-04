@@ -115,15 +115,36 @@ inline fun <T> Iterable<T>.multiplyOf(selector: (T) -> Int): Int {
     return result
 }
 
-fun List<String>.to2dIntArray(): Array<IntArray> {
-    val maxX = first().length
+/**
+ * Converts this list of strings into a 2D char array.
+ * array[0][0] corresponds to the first character in the first string, array[1][0] to the second char in the first string
+ * and so on.
+ *
+ * @param ignore optional character to ignore in the strings (for example a delimiter)
+ */
+fun List<String>.to2dCharArray(ignore: Char? = null): Array<CharArray> {
+    val maxX = first().count { ignore == null || it != ignore } - 1
     val maxY = size
-    val array = (0..maxX).asSequence().map { IntArray(maxY) }.toList().toTypedArray()
-    withIndex().forEach { (x, row) ->
-        row.withIndex().forEach { (y, char) ->
-            array[x][y] = char.digitToInt()
+    val array = (0..maxX).asSequence().map { CharArray(maxY) }.toList().toTypedArray()
+    withIndex().forEach { (y, row) ->
+        row.filter { ignore == null || it != ignore }.withIndex().forEach { (x, char) ->
+            array[x][y] = char
         }
     }
-    println(array)
     return array
+}
+
+fun List<String>.to2dIntArray(ignore: Char? = null) =
+    to2dCharArray(ignore).map { chars -> chars.map { it.digitToInt() }.toIntArray() }.toTypedArray()
+
+fun Array<CharArray>.print() {
+    val maxX = size - 1
+    val maxY = first().size - 1
+    for (y in 0..maxY) {
+        print("[")
+        for (x in 0..maxX) {
+            print(this[x][y])
+        }
+        println("]")
+    }
 }
