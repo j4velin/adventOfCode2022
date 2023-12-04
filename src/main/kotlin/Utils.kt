@@ -8,7 +8,7 @@ import kotlin.math.absoluteValue
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String, year: Int = 2021) = File("src/aoc$year", "$name.txt")
+fun readInput(name: String, year: Int = 2021) = File("src/main/kotlin/aoc$year", "$name.txt")
     .readLines()
 
 /**
@@ -113,4 +113,17 @@ inline fun <T> Iterable<T>.multiplyOf(selector: (T) -> Int): Int {
         result *= selector(element)
     }
     return result
+}
+
+fun List<String>.to2dIntArray(): Array<IntArray> {
+    val maxX = first().length
+    val maxY = size
+    val array = (0..maxX).asSequence().map { IntArray(maxY) }.toList().toTypedArray()
+    withIndex().forEach { (x, row) ->
+        row.withIndex().forEach { (y, char) ->
+            array[x][y] = char.digitToInt()
+        }
+    }
+    println(array)
+    return array
 }
