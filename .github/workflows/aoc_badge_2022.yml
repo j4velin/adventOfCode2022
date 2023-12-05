@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - src/aoc2022/*
+      - src/main/kotlin/aoc2022/*
 
 jobs:
   update:
