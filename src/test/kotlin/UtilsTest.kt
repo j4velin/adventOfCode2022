@@ -18,4 +18,35 @@ class UtilsTest {
         assertEquals(array[3][2], 'r')
         assertEquals(array[6][3], '-')
     }
+
+    @Test
+    fun `cut range from the beginning`() {
+        val originalRange = 10L..100L
+        val cut = 0L..20L
+        val cuttedRange = originalRange.cut(cut)
+
+        assertEquals(1, cuttedRange.count())
+        assertEquals(21L..100L, cuttedRange.first())
+    }
+
+    @Test
+    fun `cut range from the end`() {
+        val originalRange = 10L..100L
+        val cut = 100L..110L
+        val cuttedRange = originalRange.cut(cut)
+
+        assertEquals(1, cuttedRange.count())
+        assertEquals(10L..99L, cuttedRange.first())
+    }
+
+    @Test
+    fun `cut range from the middle`() {
+        val originalRange = 10L..100L
+        val cut = 50L..75L
+        val cuttedRange = originalRange.cut(cut)
+
+        assertEquals(2, cuttedRange.count())
+        assertEquals(10L..49L, cuttedRange.first())
+        assertEquals(76L..100L, cuttedRange.last())
+    }
 }

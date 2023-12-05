@@ -154,7 +154,7 @@ fun Array<CharArray>.print() {
  */
 fun LongRange.cut(other: LongRange): Sequence<LongRange> = sequence {
     when {
-        other.last <= this@cut.first || this@cut.last <= other.first -> yield(this@cut)  // completely out of cut
+        other.last < this@cut.first || this@cut.last < other.first -> yield(this@cut)  // completely out of cut
         other.first <= this@cut.first && this@cut.last <= other.last -> {} // completely within cut
         other.first <= this@cut.first && this@cut.last > other.last -> yield(LongRange(other.last + 1, this@cut.last))
         other.first > this@cut.first && this@cut.last <= other.last -> yield(LongRange(this@cut.first, other.first - 1))
