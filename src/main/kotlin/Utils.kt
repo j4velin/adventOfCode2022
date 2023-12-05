@@ -148,3 +148,21 @@ fun Array<CharArray>.print() {
         println("]")
     }
 }
+
+/**
+ * Removes the [other] range from this range (might produce 2 new ranges if [other] is somewhere in the middle of this)
+ */
+fun LongRange.cut(other: LongRange): Sequence<LongRange> = sequence {
+    when {
+        other.last <= this@cut.first || this@cut.last <= other.first -> yield(this@cut)  // completely out of cut
+        other.first <= this@cut.first && this@cut.last <= other.last -> {} // completely within cut
+        other.first <= this@cut.first && this@cut.last > other.last -> yield(LongRange(other.last + 1, this@cut.last))
+        other.first > this@cut.first && this@cut.last <= other.last -> yield(LongRange(this@cut.first, other.first - 1))
+        this@cut.first < other.first && other.last < this@cut.last -> {
+            yield(LongRange(this@cut.first, other.first - 1))
+            yield(LongRange(other.last + 1, this@cut.last))
+        }
+
+        else -> throw IllegalArgumentException("something wrong: $this@cut cut with $other")
+    }
+}

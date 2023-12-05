@@ -1,34 +1,55 @@
 package aoc2023
 
+import cut
 import readInput
 import separateBy
 
-private data class ConversionMap(val name: String, val sources: List<LongRange>, val offsets: List<Long>) {
+private data class MappingRange(val range: LongRange, val offset: Long)
+
+private data class ConversionMap(val name: String, private val mappings: List<MappingRange>) {
+
     companion object {
         private val MAP_REGEX = """(?<destination>\d+)\s+(?<source>\d+)\s+(?<size>\d+)""".toRegex()
         fun fromStringList(input: List<String>): ConversionMap {
             val name = input.first().replace(" map:", "")
-            val sources = mutableListOf<LongRange>()
-            val offsets = mutableListOf<Long>()
+            val mappings = mutableListOf<MappingRange>()
             input.drop(1).forEach { line ->
                 val result = MAP_REGEX.find(line)
                 if (result != null) {
                     val size = result.groups["size"]!!.value.toInt() - 1
                     val sourceStart = result.groups["source"]!!.value.toLong()
                     val destinationStart = result.groups["destination"]!!.value.toLong()
-                    sources.add(LongRange(sourceStart, sourceStart + size))
-                    offsets.add(destinationStart - sourceStart)
+                    mappings.add(
+                        MappingRange(
+                            LongRange(sourceStart, sourceStart + size),
+                            destinationStart - sourceStart
+                        )
+                    )
                 } else {
                     throw IllegalArgumentException("invalid input: $line")
                 }
             }
-            return ConversionMap(name, sources, offsets)
+            return ConversionMap(name, mappings.sortedBy { it.range.first })
         }
     }
 
-    fun map(input: Long) = sources.withIndex().find { input in it.value }?.let { (idx, _) ->
-        offsets[idx] + input
-    } ?: input
+    fun map(input: Long) = mappings.find { input in it.range }?.let { it.offset + input } ?: input
+
+    fun map(input: LongRange): Sequence<LongRange> = sequence {
+        var gaps = listOf(input)
+        mappings.filter { it.range.last >= input.first && it.range.first <= input.last }.forEach {
+            val overlapStart = it.range.first.coerceAtLeast(input.first)
+            val overlapEnd = it.range.last.coerceAtMost(input.last)
+            val overlap = LongRange(overlapStart, overlapEnd)
+            yield(LongRange(overlapStart + it.offset, overlapEnd + it.offset))
+
+            gaps = gaps.flatMap { gap -> gap.cut(overlap) }
+        }
+
+        if (gaps.isNotEmpty()) {
+            gaps.forEach { yield(it) }
+        }
+    }
 }
 
 object Day05 {
@@ -39,7 +60,6 @@ object Day05 {
         return seeds.minOf { seed ->
             var currentValue = seed
             maps.forEach { currentValue = it.map(currentValue) }
-            println("seed: $seed -> location: $currentValue")
             currentValue
         }
     }
@@ -50,9 +70,13 @@ object Day05 {
             val start = result.groups["start"]!!.value.toLong()
             LongRange(start, start + result.groups["size"]!!.value.toLong() - 1L)
         }
-        // TODO
+        val maps = input.drop(2).separateBy { it.isEmpty() }.map { ConversionMap.fromStringList(it) }
 
-        return 0L
+        return seedRanges.minOf { seedRange ->
+            var currentSequence = sequenceOf(seedRange)
+            maps.forEach { conversionMap -> currentSequence = currentSequence.flatMap { conversionMap.map(it) } }
+            currentSequence.minOf { it.first }
+        }
     }
 }
 
