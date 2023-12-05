@@ -3,32 +3,31 @@ package aoc2023
 import readInput
 import separateBy
 
-private data class ConversionMap(val name: String, val source: List<LongRange>, val destination: List<LongRange>) {
+private data class ConversionMap(val name: String, val sources: List<LongRange>, val offsets: List<Long>) {
     companion object {
-        private val map_regex = """(?<destination>\d+)\s+(?<source>\d+)\s+(?<size>\d+)""".toRegex()
+        private val MAP_REGEX = """(?<destination>\d+)\s+(?<source>\d+)\s+(?<size>\d+)""".toRegex()
         fun fromStringList(input: List<String>): ConversionMap {
             val name = input.first().replace(" map:", "")
-            val source = mutableListOf<LongRange>()
-            val destination = mutableListOf<LongRange>()
+            val sources = mutableListOf<LongRange>()
+            val offsets = mutableListOf<Long>()
             input.drop(1).forEach { line ->
-                val result = map_regex.find(line)
+                val result = MAP_REGEX.find(line)
                 if (result != null) {
                     val size = result.groups["size"]!!.value.toInt() - 1
                     val sourceStart = result.groups["source"]!!.value.toLong()
                     val destinationStart = result.groups["destination"]!!.value.toLong()
-                    source.add(LongRange(sourceStart, sourceStart + size))
-                    destination.add(LongRange(destinationStart, destinationStart + size))
+                    sources.add(LongRange(sourceStart, sourceStart + size))
+                    offsets.add(destinationStart - sourceStart)
                 } else {
                     throw IllegalArgumentException("invalid input: $line")
                 }
             }
-            return ConversionMap(name, source, destination)
+            return ConversionMap(name, sources, offsets)
         }
     }
 
-    fun map(input: Long) = source.withIndex().find { input in it.value }?.let { (idx, range) ->
-        val diff = range.indexOf(input)
-        destination[idx].first + diff
+    fun map(input: Long) = sources.withIndex().find { input in it.value }?.let { (idx, _) ->
+        offsets[idx] + input
     } ?: input
 }
 
@@ -46,6 +45,13 @@ object Day05 {
     }
 
     fun part2(input: List<String>): Long {
+        val regex = """(?<start>\d+)\s+(?<size>\d+)\s?""".toRegex()
+        val seedRanges = regex.findAll(input.first()).map { result ->
+            val start = result.groups["start"]!!.value.toLong()
+            LongRange(start, start + result.groups["size"]!!.value.toLong() - 1L)
+        }
+        // TODO
+
         return 0L
     }
 }
