@@ -42,4 +42,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+# Don't check in puzzle input
 Day??.txt
