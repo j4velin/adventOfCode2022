@@ -67,6 +67,8 @@ data class Point(val x: Int, val y: Int) {
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
 
     fun distanceTo(other: Point) = abs(x - other.x) + abs(y - other.y)
+
+    fun longDistanceTo(other: Point) = abs(x.toLong() - other.x.toLong()) + abs(y.toLong() - other.y.toLong())
 }
 
 /**
