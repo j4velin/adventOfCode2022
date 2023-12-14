@@ -47,12 +47,12 @@ private class MirrorMap(private val input: List<String>) {
         val cycle = findCycle() ?: throw IllegalArgumentException("No cycle found")
         val cycleLength = cycle.second - cycle.first
 
-        val cycleTimes = max(1, times / cycleLength)
-        val remaining = times - cycle.first - cycleLength * cycleTimes
+        val remaining = times - cycle.second
+        val remainingAfterCycling = remaining % cycleLength
+
         currentMap = initial
         // walk into the cycle, then at least once + remaining steps until 'times'
-        // TODO: for some reason, I need to walk the cycle at least 8 times!?!?
-        repeat(cycle.first + cycleLength * 10 + remaining) {
+        repeat(cycle.first + cycleLength + remainingAfterCycling) {
             tilt(Direction.NORTH)
             tilt(Direction.WEST)
             tilt(Direction.SOUTH)
