@@ -5,7 +5,7 @@ import readInput
 import to2dCharArray
 
 private enum class Direction { NORTH, SOUTH, EAST, WEST }
-private class MirrorMap(input: List<String>) {
+private class MirrorMap(private val input: List<String>) {
 
     private var currentMap = input.to2dCharArray()
     private val maxY = input.size
@@ -22,17 +22,45 @@ private class MirrorMap(input: List<String>) {
             return northLoad
         }
 
-    fun cycle(times: Int) {
+    private fun findCycle(): Pair<Int, Int>? {
+        var str = currentMap.map { it.toList() }
+        val cache = mutableMapOf(str to 0)
         // north, then west, then south, then east
-        /*
-        repeat(times) {
+        repeat(Int.MAX_VALUE) { round ->
+            tilt(Direction.NORTH)
+            tilt(Direction.WEST)
+            tilt(Direction.SOUTH)
+            tilt(Direction.EAST)
+            str = currentMap.map { it.toList() }
+            if (cache.contains(str)) {
+                return cache[str]!! to round
+            } else {
+                cache[str] = round
+            }
+        }
+        return null
+    }
+
+    fun cycle(times: Int) {
+        val initial = input.to2dCharArray()
+        val cycle = findCycle()
+        if (cycle == null) {
+            throw IllegalArgumentException("No cycle found")
+        }
+        println("cycle: $cycle")
+        val cycleLength = cycle.second - cycle.first
+
+        val cycleTimes = times / cycleLength
+        val remaining = times - cycle.first - cycleLength * cycleTimes
+        currentMap = initial
+        println("total:" + (cycle.first + cycleLength * (times / cycleLength) + remaining))
+        // walk into the cycle, then at least once + remaining steps until 'times'
+        repeat(cycle.first + cycleLength + remaining) {
             tilt(Direction.NORTH)
             tilt(Direction.WEST)
             tilt(Direction.SOUTH)
             tilt(Direction.EAST)
         }
-
-         */
     }
 
     fun tilt(direction: Direction) {
