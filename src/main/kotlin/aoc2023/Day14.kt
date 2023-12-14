@@ -3,6 +3,7 @@ package aoc2023
 import print
 import readInput
 import to2dCharArray
+import kotlin.math.max
 
 private enum class Direction { NORTH, SOUTH, EAST, WEST }
 private class MirrorMap(private val input: List<String>) {
@@ -43,19 +44,15 @@ private class MirrorMap(private val input: List<String>) {
 
     fun cycle(times: Int) {
         val initial = input.to2dCharArray()
-        val cycle = findCycle()
-        if (cycle == null) {
-            throw IllegalArgumentException("No cycle found")
-        }
-        println("cycle: $cycle")
+        val cycle = findCycle() ?: throw IllegalArgumentException("No cycle found")
         val cycleLength = cycle.second - cycle.first
 
-        val cycleTimes = times / cycleLength
+        val cycleTimes = max(1, times / cycleLength)
         val remaining = times - cycle.first - cycleLength * cycleTimes
         currentMap = initial
-        println("total:" + (cycle.first + cycleLength * (times / cycleLength) + remaining))
         // walk into the cycle, then at least once + remaining steps until 'times'
-        repeat(cycle.first + cycleLength + remaining) {
+        // TODO: for some reason, I need to walk the cycle at least 8 times!?!?
+        repeat(cycle.first + cycleLength * 10 + remaining) {
             tilt(Direction.NORTH)
             tilt(Direction.WEST)
             tilt(Direction.SOUTH)
