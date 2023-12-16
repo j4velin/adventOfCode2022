@@ -63,7 +63,7 @@ data class Point(val x: Int, val y: Int) {
      */
     fun move(dx: Int, dy: Int) = Point(x + dx, y + dy)
 
-    private fun isWithin(grid: Pair<Point, Point>) =
+    fun isWithin(grid: Pair<Point, Point>) =
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
 
     fun distanceTo(other: Point) = abs(x - other.x) + abs(y - other.y)
@@ -135,6 +135,13 @@ fun List<String>.to2dCharArray(ignore: Char? = null): Array<CharArray> {
     }
     return array
 }
+
+inline fun <reified T : Any> List<String>.to2dArray(ignore: Char? = null, mapper: (Char) -> T) =
+    to2dCharArray(ignore).map { chars -> chars.map(mapper).toTypedArray() }.toTypedArray()
+
+inline fun <reified T : Any> List<String>.to2dArray(ignore: Char? = null, mapper: (Int, Int, Char) -> T) =
+    to2dCharArray(ignore).withIndex()
+        .map { (x, column) -> column.withIndex().map { (y, char) -> mapper(x, y, char) }.toTypedArray() }.toTypedArray()
 
 fun List<String>.to2dIntArray(ignore: Char? = null) =
     to2dCharArray(ignore).map { chars -> chars.map { it.digitToInt() }.toIntArray() }.toTypedArray()
