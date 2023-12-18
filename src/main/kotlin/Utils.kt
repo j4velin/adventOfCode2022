@@ -33,20 +33,57 @@ fun <T, U> Sequence<T>.withEachOf(other: Sequence<U>): Sequence<Pair<T, U>> = fl
 /**
  * Data class representing a point on a 2D area
  */
+@Deprecated("Use PointL class instead", ReplaceWith("PointL"))
 data class Point(val x: Int, val y: Int) {
+
+    private val actual = convert(this)
+
+    private fun convert(original: PointL) = Point(original.x.toInt(), original.y.toInt())
+    private fun convert(original: Point) = PointL(original.x.toLong(), original.y.toLong())
 
     /**
      * @param withDiagonal true to also include diagonal neighbours
      * @param validGrid optional area (pair of bottom left and upper right corner) in which the neighbours must be within
      * @return the neighbouring points of this point
      */
-    fun getNeighbours(withDiagonal: Boolean = false, validGrid: Pair<Point, Point>? = null) = buildSet {
+    fun getNeighbours(withDiagonal: Boolean = false, validGrid: Pair<Point, Point>? = null) =
+        actual.getNeighbours(withDiagonal, validGrid?.let { convert(it.first) to convert(it.second) })
+            .map { convert(it) }
+
+    infix operator fun plus(other: Point) = convert(actual + convert(other))
+
+    /**
+     * @param dx the delta in x direction
+     * @param dy the delta in y direction
+     * @return the new resulting point, which is created by moving this point along the given vector
+     */
+    fun move(dx: Int, dy: Int) = convert(actual.move(dx, dy))
+
+    fun isWithin(grid: Pair<Point, Point>) = actual.isWithin(convert(grid.first) to convert(grid.second))
+
+    fun distanceTo(other: Point) = actual.distanceTo(convert(other)).toInt()
+
+    fun longDistanceTo(other: Point) = actual.distanceTo(convert(other))
+}
+
+
+/**
+ * Data class representing a point on a 2D area
+ */
+data class PointL(val x: Long, val y: Long) {
+
+    /**
+     * @param withDiagonal true to also include diagonal neighbours
+     * @param validGrid optional area (pair of bottom left and upper right corner) in which the neighbours must be within
+     * @return the neighbouring points of this point
+     */
+    fun getNeighbours(withDiagonal: Boolean = false, validGrid: Pair<PointL, PointL>? = null) = buildSet {
         for (i in -1..1) {
             for (j in -1..1) {
                 if ((i.absoluteValue == j.absoluteValue) && (i == 0 || !withDiagonal)) {
                     continue
                 }
-                val p = Point(x + i, y + j)
+                val p = move(i, j)
                 if (validGrid == null || p.isWithin(validGrid)) {
                     add(p)
                 }
@@ -54,22 +91,22 @@ data class Point(val x: Int, val y: Int) {
         }
     }
 
-    infix operator fun plus(other: Point) = move(other.x, other.y)
+    infix operator fun plus(other: PointL) = move(other.x, other.y)
 
     /**
      * @param dx the delta in x direction
      * @param dy the delta in y direction
      * @return the new resulting point, which is created by moving this point along the given vector
      */
-    fun move(dx: Int, dy: Int) = Point(x + dx, y + dy)
+    fun move(dx: Long, dy: Long) = PointL(x + dx, y + dy)
+    fun move(dx: Int, dy: Int) = move(dx.toLong(), dy.toLong())
 
-    fun isWithin(grid: Pair<Point, Point>) =
+    fun isWithin(grid: Pair<PointL, PointL>) =
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
 
-    fun distanceTo(other: Point) = abs(x - other.x) + abs(y - other.y)
-
-    fun longDistanceTo(other: Point) = abs(x.toLong() - other.x.toLong()) + abs(y.toLong() - other.y.toLong())
+    fun distanceTo(other: PointL) = abs(x - other.x) + abs(y - other.y)
 }
+
 
 /**
  * Splits a list into a list of lists by separating the original elements whenever an element matches the given predicate.
