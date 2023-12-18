@@ -8,15 +8,12 @@ import kotlin.math.absoluteValue
 /**
  * Reads lines from the given input txt file.
  */
-fun readInput(name: String, year: Int = 2021) = File("src/main/kotlin/aoc$year", "$name.txt")
-    .readLines()
+fun readInput(name: String, year: Int = 2021) = File("src/main/kotlin/aoc$year", "$name.txt").readLines()
 
 /**
  * Converts string to md5 hash.
  */
-fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteArray()))
-    .toString(16)
-    .padStart(32, '0')
+fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteArray())).toString(16).padStart(32, '0')
 
 
 infix fun Int.modulo(mod: Int) = if (this > mod) this % mod else this
@@ -105,6 +102,20 @@ data class PointL(val x: Long, val y: Long) {
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
 
     fun distanceTo(other: PointL) = abs(x - other.x) + abs(y - other.y)
+}
+
+/**
+ * Shoelace formula to calculate the area enclosed by these points
+ */
+fun Iterable<PointL>.areaWithin(): Long {
+    val actualList = if (this.last() != this.first()) {
+        // make sure to close the border
+        this + this.first()
+    } else {
+        this
+    }
+    return abs(actualList.windowed(2, 1)
+        .sumOf { points -> (points.first().y + points.last().y) * (points.first().x - points.last().x) }) / 2L
 }
 
 

@@ -1,6 +1,7 @@
 package aoc2023
 
 import PointL
+import areaWithin
 import readInput
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -17,12 +18,11 @@ object Day18 {
             addAll(input.map { line -> current += getDelta(line); current })
         }
 
-        val shoeLace = edges.windowed(2, 1)
-            .sumOf { points -> (points.first().y + points.last().y) * (points.first().x - points.last().x) } / 2L
+        val border = edges.windowed(2, 1).sumOf { it.first().distanceTo(it.last()) }
 
-        val border = edges.windowed(2, 1).sumOf { it.first().distanceTo(it.last()) } / 2
-
-        return shoeLace + border + 1L
+        // Pick's theorem is actually A = inner + border/2 - 1
+        // -> adding 2 (+1 instead of -1) seems to get the correct answers, probably due to the corners somehow
+        return edges.areaWithin() + border / 2 + 1
     }
 
     fun part1(input: List<String>) = solve(input) { line ->

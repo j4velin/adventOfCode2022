@@ -49,4 +49,22 @@ class UtilsTest {
         assertEquals(10L..49L, cuttedRange.first())
         assertEquals(76L..100L, cuttedRange.last())
     }
+
+    @Test
+    fun `shoelace formula for rectangle`() {
+        val points1 = listOf(PointL(0, 10), PointL(10, 10), PointL(10, 0), PointL(0, 0))
+        assertEquals(100, points1.areaWithin())
+
+        val points2 = listOf(PointL(0, 0), PointL(0, 10), PointL(10, 10), PointL(10, 0))
+        assertEquals(100, points2.areaWithin())
+
+        val points3 = listOf(PointL(0, 0), PointL(10, 0), PointL(10, 10), PointL(0, 10))
+        assertEquals(100, points3.areaWithin())
+    }
+
+    @Test
+    fun `shoelace formula for triangle`() {
+        val points = listOf(PointL(0, 0), PointL(10, 0), PointL(10, 10))
+        assertEquals(50, points.areaWithin())
+    }
 }
