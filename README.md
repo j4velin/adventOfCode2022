@@ -4,7 +4,7 @@
 | [2023](https://github.com/j4velin/adventOfCode/tree/main/src/main/kotlin/aoc2023)          | [2022](https://github.com/j4velin/adventOfCode/tree/main/src/main/kotlin/aoc2022)          | [2021](https://github.com/j4velin/adventOfCode/tree/main/src/main/kotlin/aoc2021)        |
 |--------------|--------------|-------------|
 | ![days2023](https://img.shields.io/badge/days%20completed-18-red) | ![days2022](https://img.shields.io/badge/days%20completed-23-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
-| ![stars2023](https://img.shields.io/badge/stars%20⭐-36-yellow)| ![stars2022](https://img.shields.io/badge/stars%20⭐-48-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
+| ![stars2023](https://img.shields.io/badge/stars%20⭐-37-yellow)| ![stars2022](https://img.shields.io/badge/stars%20⭐-48-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
 
 
 
