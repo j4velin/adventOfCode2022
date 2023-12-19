@@ -165,6 +165,14 @@ inline fun <T> Iterable<T>.multiplyOf(selector: (T) -> Int): Int {
     return result
 }
 
+inline fun <T> Iterable<T>.multiplyOfLong(selector: (T) -> Long): Long {
+    var result = 1L
+    for (element in this) {
+        result *= selector(element)
+    }
+    return result
+}
+
 /**
  * Converts this list of strings into a 2D char array.
  * array[0][0] corresponds to the first character in the first string, array[1][0] to the second char in the first string

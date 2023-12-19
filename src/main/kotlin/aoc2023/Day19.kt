@@ -1,5 +1,7 @@
 package aoc2023
 
+import multiplyOf
+import multiplyOfLong
 import readInput
 import separateBy
 
@@ -38,37 +40,39 @@ object Day19 {
     private data object Accepted : Result()
     private data object Rejected : Result()
 
-    private class Rule(val invoke: (Part) -> Result) {
+    private class Rule(val originalInput: String) {
+
+        private val matchResult by lazy { regex.matchEntire(originalInput) }
+        val matched by lazy { matchResult != null }
+        val property by lazy { matchResult?.groups?.get("property")?.value?.first() }
+        val condition by lazy { matchResult?.groups?.get("condition")?.value?.first() }
+        val value by lazy { matchResult?.groups?.get("value")?.value?.toInt() }
+        val target by lazy { matchResult?.groups?.get("target")?.value ?: originalInput }
+
+        operator fun invoke(part: Part): Result {
+            val result = when (target) {
+                "A" -> Accepted
+                "R" -> Rejected
+                else -> Next(target)
+            }
+            return if (matchResult != null) {
+                val partValue = part.properties[property]
+                    ?: throw IllegalArgumentException("invalid part: ${part.properties.entries}")
+
+                when (condition) {
+                    '>' -> if (partValue > value!!) result else NoDecision
+                    '<' -> if (partValue < value!!) result else NoDecision
+                    else -> throw IllegalArgumentException("invalid rule condition: $condition")
+                }
+            } else {
+                result
+            }
+        }
+
         companion object {
             // a<2006:qkq
-            private val regex = """(?<property>[xmas])(?<condition>[<>])(?<value>\d+):(?<target>[a-zAR]+)""".toRegex()
-            fun fromString(input: String): Rule {
-                if (input == "A") return Rule { Accepted }
-                if (input == "R") return Rule { Rejected }
-                val matchResult = regex.matchEntire(input)
-                if (matchResult != null) {
-                    val property = matchResult.groups["property"]!!.value.first()
-                    val condition = matchResult.groups["condition"]!!.value
-                    val value = matchResult.groups["value"]!!.value.toInt()
-                    val target = matchResult.groups["target"]!!.value
-                    return Rule { part ->
-                        val partValue = part.properties[property]
-                            ?: throw IllegalArgumentException("invalid part: ${part.properties.entries}")
-                        val result = when (target) {
-                            "A" -> Accepted
-                            "R" -> Rejected
-                            else -> Next(target)
-                        }
-                        when (condition) {
-                            ">" -> if (partValue > value) result else NoDecision
-                            "<" -> if (partValue < value) result else NoDecision
-                            else -> throw IllegalArgumentException("invalid rule condition: $condition")
-                        }
-                    }
-                } else {
-                    return Rule { Next(input) }
-                }
-            }
+            val regex = """(?<property>[xmas])(?<condition>[<>])(?<value>\d+):(?<target>[a-zAR]+)""".toRegex()
+            fun fromString(input: String) = Rule(input)
         }
     }
 
@@ -95,7 +99,7 @@ object Day19 {
 
         fun process(part: Part): String? {
             rules.forEach {
-                when (val result = it.invoke(part)) {
+                when (val result = it(part)) {
                     NoDecision -> {}
                     Rejected -> return null
                     Accepted -> {
@@ -131,7 +135,57 @@ object Day19 {
     }
 
     fun part2(input: List<String>): Long {
-        return 0L
+        val workflows = input.takeWhile { it.isNotEmpty() }.map { Workflow.fromString(it) }.associateBy { it.name }
+        val startWorkflow = workflows["in"] ?: throw IllegalArgumentException("No start workflow found")
+
+        val allParts = mapOf(
+            'x' to 1..4000,
+            'm' to 1..4000,
+            'a' to 1..4000,
+            's' to 1..4000,
+        )
+
+        return calculateAcceptedParts(allParts, startWorkflow, workflows)
+    }
+
+    private fun calculateAcceptedParts(
+        ranges: Map<Char, IntRange>,
+        currentWorkflow: Workflow,
+        workflows: Map<String, Workflow>
+    ): Long {
+        val currentRanges = ranges.toMutableMap()
+        return currentWorkflow.rules.sumOf { rule ->
+            if (!rule.matched) {
+                when (rule.target) {
+                    "A" -> currentRanges.values.multiplyOfLong { it.count().toLong() }
+                    "R" -> 0L
+                    else -> calculateAcceptedParts(currentRanges, workflows[rule.target]!!, workflows)
+                }
+            } else {
+                val existingRange = currentRanges[rule.property]!!
+
+                val matchedRange: IntRange
+                val unmatchedRange: IntRange
+
+                if (rule.condition == '>') {
+                    matchedRange = IntRange(rule.value!! + 1, existingRange.last)
+                    unmatchedRange = IntRange(existingRange.first, rule.value!!)
+                } else {
+                    matchedRange = IntRange(existingRange.first, rule.value!! - 1)
+                    unmatchedRange = IntRange(rule.value!!, existingRange.last)
+                }
+
+                val newRanges = currentRanges
+                    .map { if (it.key == rule.property) it.key to matchedRange else it.key to it.value }.toMap()
+                currentRanges[rule.property!!] = unmatchedRange
+
+                when (rule.target) {
+                    "A" -> newRanges.values.multiplyOfLong { it.count().toLong() }
+                    "R" -> 0
+                    else -> calculateAcceptedParts(newRanges, workflows[rule.target]!!, workflows)
+                }
+            }
+        }
     }
 }
 
