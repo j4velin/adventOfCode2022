@@ -3,8 +3,8 @@
 
 | [2023](https://github.com/j4velin/adventOfCode/tree/main/src/main/kotlin/aoc2023)          | [2022](https://github.com/j4velin/adventOfCode/tree/main/src/main/kotlin/aoc2022)          | [2021](https://github.com/j4velin/adventOfCode/tree/main/src/main/kotlin/aoc2021)        |
 |--------------|--------------|-------------|
-| ![days2023](https://img.shields.io/badge/days%20completed-19-red) | ![days2022](https://img.shields.io/badge/days%20completed-23-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
-| ![stars2023](https://img.shields.io/badge/stars%20⭐-39-yellow)| ![stars2022](https://img.shields.io/badge/stars%20⭐-48-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
+| ![days2023](https://img.shields.io/badge/days%20completed-20-red) | ![days2022](https://img.shields.io/badge/days%20completed-23-red) | ![days2021](https://img.shields.io/badge/days%20completed-21-red) |
+| ![stars2023](https://img.shields.io/badge/stars%20⭐-40-yellow)| ![stars2022](https://img.shields.io/badge/stars%20⭐-48-yellow)| ![stars2021](https://img.shields.io/badge/stars%20⭐-43-yellow) |
 
 
 
