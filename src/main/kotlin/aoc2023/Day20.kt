@@ -78,7 +78,7 @@ object Day20 {
         override fun handlePulse(pulse: Pulse) = emptyList<Pulse>()
     }
 
-    fun part1(input: List<String>): Long {
+    private fun parseModules(input: List<String>): Map<String, Module> {
         val modules = input.associate { line ->
             val module = Module.parse(line).first
             module.name to module
@@ -98,30 +98,70 @@ object Day20 {
                 (modules[it] ?: throw IllegalArgumentException("No module found with name $it")).incoming.add(current)
             }
         }
+        return modules
+    }
 
+    fun part1(input: List<String>): Long {
+        val modules = parseModules(input)
         val start = modules["broadcaster"] ?: throw IllegalArgumentException("No broadcast module found")
 
-        var highSent = 0L
-        var lowSent = 0L
+        var highs = 0L
+        var lows = 0L
         repeat(1000) {
-            lowSent++
+            lows++ // initial push of the "button module"
             val queue: Queue<Pulse> = LinkedList(start.handlePulse(Pulse(start, start, PulseType.LOW)))
             while (queue.isNotEmpty()) {
                 val current = queue.poll()
                 if (current.type == PulseType.HIGH) {
-                    highSent++
+                    highs++
                 } else {
-                    lowSent++
+                    lows++
                 }
                 queue.addAll(current.to.handlePulse(current))
             }
         }
 
-        return highSent * lowSent
+        return highs * lows
     }
 
     fun part2(input: List<String>): Long {
-        return 0L
+        val modules = parseModules(input)
+        val start = modules["broadcaster"] ?: throw IllegalArgumentException("No broadcast module found")
+
+        val modulesToLoop = listOf("gt", "vr", "nl", "lr") // extracted manually from actual puzzle input
+        val loopStart = IntArray(modulesToLoop.size)
+
+        var sent = 0L
+        while (true) {
+            sent++
+            val queue: Queue<Pulse> = LinkedList(start.handlePulse(Pulse(start, start, PulseType.LOW)))
+            while (queue.isNotEmpty()) {
+                val current = queue.poll()
+
+                if (current.from.name in modulesToLoop && current.type == PulseType.HIGH) {
+                    val index = modulesToLoop.indexOf(current.from.name)
+                    if (loopStart[index] == 0) {
+                        loopStart[index] = sent.toInt()
+                    }
+                    if (loopStart.all { it > 0 }) {
+                        // should really implement a LCM algorithm in util now...
+                        println(
+                            "https://www.calculatorsoup.com/calculators/math/lcm.php?input=${
+                                loopStart.joinToString(separator = "+")
+                            }&data=none&action=solve"
+                        )
+                        return -1L
+                    }
+                }
+
+                if (current.to.name == "rx") {
+                    if (current.type == PulseType.LOW) {
+                        return sent
+                    }
+                }
+                queue.addAll(current.to.handlePulse(current))
+            }
+        }
     }
 }
 
