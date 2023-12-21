@@ -69,6 +69,8 @@ data class Point(val x: Int, val y: Int) {
  */
 data class PointL(val x: Long, val y: Long) {
 
+    constructor(x: Int, y: Int) : this(x.toLong(), y.toLong())
+
     /**
      * @param withDiagonal true to also include diagonal neighbours
      * @param validGrid optional area (pair of bottom left and upper right corner) in which the neighbours must be within
