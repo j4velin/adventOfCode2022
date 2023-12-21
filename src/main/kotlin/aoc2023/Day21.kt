@@ -18,7 +18,7 @@ object Day21 {
             remainingSteps: Int,
             currentPoints: Set<PointL> = setOf(start),
             pointsReachedWithSameParitySoFar: MutableSet<PointL> = currentPoints.toMutableSet(),
-            parityEven: Boolean = true
+            parity: Parity = Parity.EVEN
         ): Set<PointL> {
             val reachable = currentPoints.flatMap {
                 it.getNeighbours(validGrid = validGrid).filter { p -> map[p.x.toInt()][p.y.toInt()] != '#' }
@@ -26,7 +26,7 @@ object Day21 {
             return if (remainingSteps == 0 || reachable.all { it in pointsReachedWithSameParitySoFar }) {
                 pointsReachedWithSameParitySoFar
             } else {
-                if ((remainingSteps % 2 == 1 && parityEven) || (remainingSteps % 2 == 0 && !parityEven)) {
+                if ((remainingSteps % 2 == 1 && parity == Parity.EVEN) || (remainingSteps % 2 == 0 && parity == Parity.ODD)) {
                     // we're at an "odd" position, so all points reachable from here can be reached with an even amount of steps
                     pointsReachedWithSameParitySoFar.addAll(reachable)
                 }
@@ -64,50 +64,137 @@ object Day21 {
                 val pointsReachedInTopGrid =
                     getReachablePointsForParity(
                         stepsInNeighbourGridsUntilOriginalGridIsFilled,
-                        currentPoints = setOf(top),
-                        parityEven = stepsInNeighbourGridsUntilOriginalGridIsFilled % 2 == 0
+                        currentPoints = setOf(bottom),
+                        parity = Parity.from(stepsInNeighbourGridsUntilOriginalGridIsFilled)
                     ).size
                 val pointsReachedInBottomGrid =
                     getReachablePointsForParity(
                         stepsInNeighbourGridsUntilOriginalGridIsFilled,
-                        currentPoints = setOf(bottom),
-                        parityEven = stepsInNeighbourGridsUntilOriginalGridIsFilled % 2 == 0
+                        currentPoints = setOf(top),
+                        parity = Parity.from(stepsInNeighbourGridsUntilOriginalGridIsFilled)
                     ).size
                 val pointsReachedInLeftGrid =
                     getReachablePointsForParity(
                         stepsInNeighbourGridsUntilOriginalGridIsFilled,
-                        currentPoints = setOf(left),
-                        parityEven = stepsInNeighbourGridsUntilOriginalGridIsFilled % 2 == 0
+                        currentPoints = setOf(right),
+                        parity = Parity.from(stepsInNeighbourGridsUntilOriginalGridIsFilled)
                     ).size
                 val pointsReachedInRightGrid =
                     getReachablePointsForParity(
                         stepsInNeighbourGridsUntilOriginalGridIsFilled,
-                        currentPoints = setOf(right),
-                        parityEven = stepsInNeighbourGridsUntilOriginalGridIsFilled % 2 == 0
+                        currentPoints = setOf(left),
+                        parity = Parity.from(stepsInNeighbourGridsUntilOriginalGridIsFilled)
                     ).size
 
                 println("top: $pointsReachedInTopGrid, bottom: $pointsReachedInBottomGrid, left: $pointsReachedInLeftGrid, right: $pointsReachedInRightGrid")
                 println("total: ${distances.size + pointsReachedInBottomGrid + pointsReachedInLeftGrid + pointsReachedInRightGrid + pointsReachedInTopGrid} in $maxDistance steps")
 
+                // double the step count
                 val nextFilledSteps = maxDistance * 2
-                val reached =
-                    distances.size * 4 + pointsReachedInBottomGrid + pointsReachedInLeftGrid + pointsReachedInRightGrid + pointsReachedInTopGrid
+
+                val bottomLeft = PointL(0, maxY)
+                val bottomRight = PointL(maxX, maxY)
+                val topLeft = PointL(0, 0)
+                val topRight = PointL(maxX, 0)
+
+                val stepsLeftWhenStartingFromCorners = nextFilledSteps - maxDistance
+
+                val pointsReachedFromBottomLeft =
+                    getReachablePointsForParity(
+                        stepsLeftWhenStartingFromCorners,
+                        currentPoints = setOf(bottomLeft),
+                        parity = Parity.from(stepsLeftWhenStartingFromCorners)
+                    ).size
+                val pointsReachedFromBottomRight =
+                    getReachablePointsForParity(
+                        stepsLeftWhenStartingFromCorners,
+                        currentPoints = setOf(bottomRight),
+                        parity = Parity.from(stepsLeftWhenStartingFromCorners)
+                    ).size
+                val pointsReachedFromTopLeft =
+                    getReachablePointsForParity(
+                        stepsLeftWhenStartingFromCorners,
+                        currentPoints = setOf(topLeft),
+                        parity = Parity.from(stepsLeftWhenStartingFromCorners)
+                    ).size
+                val pointsReachedFromTopRight =
+                    getReachablePointsForParity(
+                        stepsLeftWhenStartingFromCorners,
+                        currentPoints = setOf(topRight),
+                        parity = Parity.from(stepsLeftWhenStartingFromCorners)
+                    ).size
+
+                val reached = distances.size * (4 + 1) + pointsReachedInBottomGrid + pointsReachedInLeftGrid +
+                        pointsReachedInRightGrid + pointsReachedInTopGrid + pointsReachedFromBottomLeft +
+                        pointsReachedFromBottomRight + pointsReachedFromTopLeft + pointsReachedFromTopRight
 
                 println("total after $nextFilledSteps steps: $reached")
 
-                val repeat = maxSteps / maxDistance
-                val repeatReached =
-                    distances.size.toLong() * repeat * repeat + pointsReachedInBottomGrid + pointsReachedInLeftGrid + pointsReachedInRightGrid + pointsReachedInTopGrid
+                val stepsForSmallDiamond = distances[top]!!
+                val remainingSteps = maxSteps - stepsForSmallDiamond
+                println(remainingSteps)
 
-                println("repeat $repeat times -> ${repeat * maxDistance} steps -> $repeatReached")
+                val configurations: Map<Pair<Parity, PointL>, IntArray> = mapOf(
+                    (Parity.EVEN to start) to IntArray(130),
+                    (Parity.ODD to start) to IntArray(130),
+                    (Parity.EVEN to top) to IntArray(130),
+                    (Parity.ODD to top) to IntArray(130),
+                    (Parity.EVEN to bottom) to IntArray(130),
+                    (Parity.ODD to bottom) to IntArray(130),
+                    (Parity.EVEN to left) to IntArray(130),
+                    (Parity.ODD to left) to IntArray(130),
+                    (Parity.EVEN to right) to IntArray(130),
+                    (Parity.ODD to right) to IntArray(130),
+                    (Parity.EVEN to topLeft) to IntArray(130),
+                    (Parity.ODD to topLeft) to IntArray(130),
+                    (Parity.EVEN to topRight) to IntArray(130),
+                    (Parity.ODD to topRight) to IntArray(130),
+                    (Parity.EVEN to bottomLeft) to IntArray(130),
+                    (Parity.ODD to bottomLeft) to IntArray(130),
+                    (Parity.EVEN to bottomRight) to IntArray(130),
+                    (Parity.ODD to bottomRight) to IntArray(130),
+                )
+                configurations.forEach { entry ->
+                    for (steps in 0..129) {
+                        entry.value[steps] = getReachablePointsForParity(
+                            steps,
+                            currentPoints = setOf(topLeft),
+                            parity = entry.key.first
+                        ).size
+                    }
+                }
 
-                val remainingSteps = maxSteps - repeat * maxDistance
+                var steps = 0
+                var tileReached = 0L
 
-                println("remaining: $remainingSteps steps")
+
+                for (step in 1..maxSteps) {
+
+                }
+
+                steps += 130
+                tileReached += configurations[Parity.EVEN to start]!![130] + configurations[Parity.ODD to top]!![65] +
+                        configurations[Parity.ODD to bottom]!![65] + configurations[Parity.ODD to left]!![65] +
+                        configurations[Parity.ODD to right]!![65]
+
+                steps += 65
+                tileReached += configurations[Parity.ODD to top]!![65] + configurations[Parity.ODD to bottom]!![65] +
+                        configurations[Parity.ODD to left]!![65] + configurations[Parity.ODD to right]!![65]
+
+                steps += 65
+
 
             }
 
             return 0
+        }
+
+        private enum class Parity {
+            EVEN, ODD;
+
+            companion object {
+                fun from(input: Int) = if (input % 2 == 0) EVEN else ODD
+            }
         }
 
         tailrec fun visit(current: Set<PointL>, alreadySeen: MutableMap<PointL, Int>, steps: Int): Map<PointL, Int> {
