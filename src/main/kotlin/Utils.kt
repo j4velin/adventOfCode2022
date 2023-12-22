@@ -114,7 +114,13 @@ data class Point3(val x: Long, val y: Long, val z: Long) {
         }
     }
 
-    fun move(dx: Int, dy: Int, dz: Int) = Point3(x + dx, y + dy, z + dz)
+    constructor(x: Int, y: Int, z: Int) : this(x.toLong(), y.toLong(), z.toLong())
+
+    infix operator fun plus(other: Point3) = move(other.x, other.y, other.z)
+
+    fun move(dx: Long, dy: Long, dz: Long) = Point3(x + dx, y + dy, z + dz)
+    fun move(dx: Int, dy: Int, dz: Int) = move(dx.toLong(), dy.toLong(), dz.toLong())
+    fun distanceTo(other: Point3) = abs(x - other.x) + abs(y - other.y) + abs(z - other.z)
 }
 
 /**
