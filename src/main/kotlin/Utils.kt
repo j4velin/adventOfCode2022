@@ -106,6 +106,17 @@ data class PointL(val x: Long, val y: Long) {
     fun distanceTo(other: PointL) = abs(x - other.x) + abs(y - other.y)
 }
 
+data class Point3(val x: Long, val y: Long, val z: Long) {
+    companion object {
+        fun fromCsvString(input: String): Point3 {
+            val split = input.split(",")
+            return Point3(split[0].toLong(), split[1].toLong(), split[2].toLong())
+        }
+    }
+
+    fun move(dx: Int, dy: Int, dz: Int) = Point3(x + dx, y + dy, z + dz)
+}
+
 /**
  * Shoelace formula to calculate the area enclosed by these points
  */
@@ -233,3 +244,5 @@ fun LongRange.cut(other: LongRange): Sequence<LongRange> = sequence {
         else -> throw IllegalArgumentException("something wrong: $this@cut cut with $other")
     }
 }
+
+fun LongRange.overlaps(other: LongRange) = this.first <= other.last && other.first <= this.last
