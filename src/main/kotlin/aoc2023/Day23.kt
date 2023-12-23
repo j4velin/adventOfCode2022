@@ -32,36 +32,6 @@ object Day23 {
         private val longestDistancesWithComingFrom = mutableMapOf((start to start) to 0)
 
         val longestDistance by lazy { getLongestDistance(end, start, 0, setOf(start)) }
-        val longestDistanceWithoutIce by lazy {
-            val toVisit: Deque<Pair<PointL, Set<PointL>>> = LinkedList()
-            toVisit.add(start to emptySet())
-
-            while (toVisit.isNotEmpty()) {
-                val (currentPoint, currentPath) = toVisit.poll()
-                currentPoint.getNeighbours(validGrid = grid)
-                    .filter { map[it.x.toInt()][it.y.toInt()] != '#' }
-                    .filter { it !in currentPath }
-                    .filter { next ->
-                        val isTunnel = next.getNeighbours(validGrid = grid)
-                            .filter { map[it.x.toInt()][it.y.toInt()] != '#' }.size == 2
-                        if (isTunnel) {
-                            currentPath.size + 1 > (longestDistancesWithComingFrom[currentPoint to next] ?: 0)
-                        } else {
-                            true
-                        }
-                    }
-                    .forEach { next ->
-                        val newPath = currentPath + next
-                        toVisit.add(next to newPath)
-                        longestDistancesWithComingFrom[currentPoint to next] = newPath.size
-                        if (next == end) {
-                            println(newPath.size)
-                        }
-                    }
-            }
-
-            longestDistancesWithComingFrom.filterKeys { it.second == end }.maxOf { it.value }
-        }
 
         private fun getLongestDistance(
             target: PointL,
@@ -89,6 +59,62 @@ object Day23 {
             } else {
                 next.maxOf {
                     getLongestDistance(target, it, stepCount + 1, visited + current)
+                }
+            }
+        }
+
+        val longestDistanceWithoutIce by lazy {
+            val start = Junction(start)
+            val allJunctions = mutableMapOf(this.start to start)
+            val toVisit: Queue<Junction> = LinkedList()
+            toVisit.add(start)
+            while (toVisit.isNotEmpty()) {
+                val current = toVisit.poll()
+                current.position.getNeighbours(validGrid = grid)
+                    .filter { map[it.x.toInt()][it.y.toInt()] != '#' }
+                    .map { next -> moveToNextJunction(next, current.position) }
+                    .forEach { (point, distance) ->
+                        val junction = allJunctions.getOrPut(point) { Junction(point) }
+                        if (current.neighbours.put(junction, distance) == null) {
+                            junction.neighbours[current] = distance
+                            toVisit.add(junction)
+                        }
+                    }
+            }
+
+            getLongestDistance(end, start, 0, setOf(start))
+        }
+
+        private data class Junction(val position: PointL) {
+            val neighbours = mutableMapOf<Junction, Int>()
+        }
+
+        private fun getLongestDistance(
+            target: PointL,
+            current: Junction,
+            distanceSoFar: Int,
+            visited: Set<Junction>
+        ): Int {
+            if (current.position == target) return distanceSoFar
+            val neighbours = current.neighbours.filter { it.key !in visited }
+            return if (neighbours.isEmpty()) 0 else neighbours.maxOf { (next, distance) ->
+                getLongestDistance(target, next, distance + distanceSoFar, visited + current)
+            }
+        }
+
+        private fun moveToNextJunction(currentPoint: PointL, previousPoint: PointL): Pair<PointL, Int> {
+            var steps = 1
+            var current = currentPoint
+            var previous = previousPoint
+            while (true) {
+                val neighbours = current.getNeighbours(validGrid = grid)
+                    .filter { previous != it && map[it.x.toInt()][it.y.toInt()] != '#' }
+                if (neighbours.size == 1) {
+                    previous = current
+                    current = neighbours.first()
+                    steps++
+                } else {
+                    return current to steps
                 }
             }
         }
