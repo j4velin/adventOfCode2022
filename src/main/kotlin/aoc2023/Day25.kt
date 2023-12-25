@@ -28,27 +28,42 @@ object Day25 {
         return components
     }
 
-    private tailrec fun findMinCutSets(components: Collection<Component>): Map<GroupId, Collection<Component>> {
+    /**
+     * @param components all the [Component]s
+     * @param edgeCutCount the number of edges to cut
+     * @param groupCount the number of component groups to need after the cut
+     * @return a partitioning of the initial [Component]s into [groupCount] distinct groups
+     */
+    private tailrec fun findMinCutSets(
+        components: Collection<Component>,
+        edgeCutCount: Int = 3,
+        groupCount: Int = 2
+    ): Map<GroupId, Collection<Component>> {
         val source = components.filter { it.groupId != null }.random()
         val target = components.filter { it.groupId == null }.randomOrNull()
         return if (target == null) {
             components.groupBy { it.groupId!! }
         } else {
-            val distinctPaths = findNumberOfDistinctPaths(source, target)
-            if (distinctPaths > 3) {
+            val distinctPaths = findNumberOfDistinctPaths(source, target, shortcut = edgeCutCount)
+            if (distinctPaths > edgeCutCount) {
                 target.groupId = source.groupId
             } else {
-                target.groupId = GroupId((source.groupId!!.value + 1) % 2)
+                target.groupId = GroupId((source.groupId!!.value + 1) % groupCount)
             }
             findMinCutSets(components)
         }
     }
 
-    private fun findNumberOfDistinctPaths(source: Component, target: Component): Int {
+    /**
+     * @param shortcut a shortcut value to immediately return if that many paths are found
+     * @return the number of distinct paths between [source] & [target] (at most [shortcut] + 1)
+     */
+
+    private fun findNumberOfDistinctPaths(source: Component, target: Component, shortcut: Int = 3): Int {
         val alreadyTaken = mutableSetOf<Pair<Component, Component>>()
         var path = findPath(source, target, alreadyTaken)
         var pathsFound = 0
-        while (path != null && pathsFound <= 3) {
+        while (path != null && pathsFound <= shortcut) {
             pathsFound++
             alreadyTaken.addAll(path)
             path = findPath(source, target, alreadyTaken)
@@ -56,6 +71,10 @@ object Day25 {
         return pathsFound
     }
 
+    /**
+     * @return a path from [source] to [target] consisting of pairs of [Component]s, avoiding all the edges given in
+     * [alreadyTaken] or null, if no such path exists
+     */
     private fun findPath(
         source: Component,
         target: Component,
