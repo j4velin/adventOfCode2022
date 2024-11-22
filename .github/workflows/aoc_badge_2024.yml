@@ -1,0 +1,15 @@
+name: Update AoC Badges 2024
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - src/main/kotlin/aoc2024/*
+
+jobs:
+  update:
+    uses: ./.github/workflows/aoc_badge.yml
+    secrets: inherit
+    with:
+      year: 2024
+      starsRegex: '(?<=\[stars2024\]\(https:\/\/img\.shields\.io\/badge\/stars%20⭐-)[0-9]+(?=-yellow)'
+      daysCompletedRegex: '(?<=\[days2024\]\(https:\/\/img\.shields\.io\/badge\/days%20completed-)[0-9]+(?=-red)'
