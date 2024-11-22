@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.21"
+    kotlin("jvm") version "2.0.21"
 }
 
 repositories {
@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
     testImplementation(kotlin("test"))
 }
 
@@ -16,5 +16,5 @@ tasks.test {
 }
 
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(17)
 }
