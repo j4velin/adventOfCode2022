@@ -19,7 +19,7 @@ for i in range(1,26):
         open(os.path.join(dir, day + '_test.txt'), 'w').close()
     if not os.path.exists(os.path.join(dir, day + '.kt')):
         with open(os.path.join(dir, day + '.kt'), 'w') as f:
-            f.write('package ' + dir + '\n\n')
+            f.write('package aoc' + year + '\n\n')
             f.write('import readInput\n\n')
             f.write('object ' + day + ' {\n')
             f.write('\tfun part1(input: List<String>): Int {\n\t\treturn 0\n\t}\n\n')
