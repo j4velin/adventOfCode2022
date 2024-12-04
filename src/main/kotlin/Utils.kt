@@ -194,7 +194,7 @@ inline fun <T> Iterable<T>.multiplyOfLong(selector: (T) -> Long): Long {
 
 /**
  * Converts this list of strings into a 2D char array.
- * array[0][0] corresponds to the first character in the first string, array[1][0] to the second char in the first string
+ * `array[0][0]` corresponds to the first character in the first string, `array[1][0]` to the second char in the first string
  * and so on.
  *
  * @param ignore optional character to ignore in the strings (for example a delimiter)
