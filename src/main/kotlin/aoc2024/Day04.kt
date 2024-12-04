@@ -9,24 +9,27 @@ object Day04 {
         val width = array.first().size
         val height = array.size
         var found = 0
+        val directions = listOf(
+            Pair<Int, Int>(1, 0), // to the right
+            Pair<Int, Int>(-1, 0), // to the left
+            Pair<Int, Int>(0, 1), // downwards
+            Pair<Int, Int>(0, -1), // upwards
+            Pair<Int, Int>(1, 1), // diagonal, down,right
+            Pair<Int, Int>(1, -1), // diagonal, up,right
+            Pair<Int, Int>(-1, 1), // diagonal, down,left
+            Pair<Int, Int>(-1, -1), // diagonal, up,left
+        )
         for (x in 0 until width) {
             for (y in 0 until height) {
-                // forward
-                if (x + 3 < width && "${array[x][y]}${array[x + 1][y]}${array[x + 2][y]}${array[x + 3][y]}" == "XMAS") found++
-                // backward
-                if (x >= 3 && "${array[x][y]}${array[x - 1][y]}${array[x - 2][y]}${array[x - 3][y]}" == "XMAS") found++
-                // down
-                if (y + 3 < height && "${array[x][y]}${array[x][y + 1]}${array[x][y + 2]}${array[x][y + 3]}" == "XMAS") found++
-                // up
-                if (y >= 3 && "${array[x][y]}${array[x][y - 1]}${array[x][y - 2]}${array[x][y - 3]}" == "XMAS") found++
-                // diagonal down,right
-                if (x + 3 < width && y + 3 < height && "${array[x][y]}${array[x + 1][y + 1]}${array[x + 2][y + 2]}${array[x + 3][y + 3]}" == "XMAS") found++
-                // diagonal, down,left
-                if (x >= 3 && y + 3 < height && "${array[x][y]}${array[x - 1][y + 1]}${array[x - 2][y + 2]}${array[x - 3][y + 3]}" == "XMAS") found++
-                // diagonal up,right
-                if (x + 3 < width && y >= 3 && "${array[x][y]}${array[x + 1][y - 1]}${array[x + 2][y - 2]}${array[x + 3][y - 3]}" == "XMAS") found++
-                // diagonal, up,left
-                if (x >= 3 && y >= 3 && "${array[x][y]}${array[x - 1][y - 1]}${array[x - 2][y - 2]}${array[x - 3][y - 3]}" == "XMAS") found++
+                // starting character must be an 'X'
+                if (array[x][y] == 'X') {
+                    found += directions.filter { (dx, dy) ->
+                        val maxX = x + 3 * dx
+                        val maxY = y + 3 * dy
+                        val fitsInGrid = maxX in 0 until width && maxY in 0 until height
+                        fitsInGrid && (0..3).map { array[x + it * dx][y + it * dy] }.joinToString("") == "XMAS"
+                    }.count()
+                }
             }
         }
         return found
@@ -39,12 +42,13 @@ object Day04 {
         var found = 0
         for (x in 0 until width) {
             for (y in 0 until height) {
+                // center must be an 'A' and there must be enough space for the other characters in the array
                 if (array[x][y] == 'A' && x >= 1 && y >= 1 && x + 1 < width && y + 1 < height) {
-                    val topLeftToBottomRight = (array[x - 1][y - 1] == 'M' && array[x + 1][y + 1] == 'S') ||
+                    val topLeftToBottomRightMatches = (array[x - 1][y - 1] == 'M' && array[x + 1][y + 1] == 'S') ||
                             (array[x - 1][y - 1] == 'S' && array[x + 1][y + 1] == 'M')
-                    val topRightToBottomLeft = (array[x + 1][y - 1] == 'M' && array[x - 1][y + 1] == 'S') ||
+                    val topRightToBottomLeftMatches = (array[x + 1][y - 1] == 'M' && array[x - 1][y + 1] == 'S') ||
                             (array[x + 1][y - 1] == 'S' && array[x - 1][y + 1] == 'M')
-                    if (topLeftToBottomRight && topRightToBottomLeft) found++
+                    if (topLeftToBottomRightMatches && topRightToBottomLeftMatches) found++
                 }
             }
         }
