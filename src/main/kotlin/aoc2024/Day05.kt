@@ -9,23 +9,17 @@ object Day05 {
         val middlePage = pages[pages.size / 2]
 
         fun isInCorrectOrder(rules: List<Rule>) =
-            rules.filter { pages.contains(it.before) && pages.contains(it.after) }.all { rule ->
-                pages.indexOf(rule.before) < pages.indexOf(rule.after)
-            }
+            rules
+                .filter { pages.contains(it.before) && pages.contains(it.after) }
+                .all { rule -> pages.indexOf(rule.before) < pages.indexOf(rule.after) }
 
         fun fixOrder(rules: List<Rule>): Update {
             val relevantRules = rules.filter { pages.contains(it.before) && pages.contains(it.after) }
             val newOrder = pages.sortedWith(object : Comparator<Int> {
                 override fun compare(o1: Int, o2: Int): Int {
-                    val r1 = relevantRules.firstOrNull { it.before == o1 && it.after == o2 }
-                    if (r1 != null) {
-                        return -1
-                    }
-                    val r2 = relevantRules.firstOrNull { it.before == o2 && it.after == o1 }
-                    if (r2 != null) {
-                        return 1
-                    }
-                    return 0
+                    return relevantRules.firstOrNull { it.before == o1 && it.after == o2 }?.let { -1 }
+                        ?: relevantRules.firstOrNull { it.before == o2 && it.after == o1 }?.let { 1 }
+                        ?: 0
                 }
             })
             return Update(newOrder)
@@ -34,13 +28,12 @@ object Day05 {
 
     fun part1(input: List<String>): Int {
         val (rules, updates) = parseInput(input)
-        return updates.filter { it.isInCorrectOrder(rules) }.map { it.middlePage }.sumOf { it }
+        return updates.filter { it.isInCorrectOrder(rules) }.sumOf { it.middlePage }
     }
 
     fun part2(input: List<String>): Int {
         val (rules, updates) = parseInput(input)
-        return updates.filter { !it.isInCorrectOrder(rules) }.map { it.fixOrder(rules) }.map { it.middlePage }
-            .sumOf { it }
+        return updates.filter { !it.isInCorrectOrder(rules) }.map { it.fixOrder(rules) }.sumOf { it.middlePage }
     }
 
     private fun parseInput(input: List<String>): Pair<List<Rule>, List<Update>> {
