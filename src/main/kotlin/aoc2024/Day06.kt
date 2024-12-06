@@ -1,6 +1,8 @@
 package aoc2024
 
+import Direction
 import PointL
+import find
 import readInput
 import to2dCharArray
 
@@ -15,16 +17,8 @@ object Day06 {
 
         open fun get(x: Int, y: Int) = input[x][y]
 
-        fun findGuard(): Guard {
-            for (x in 0..<maxX) {
-                for (y in 0..<maxY) {
-                    if (get(x, y) == '^') {
-                        return Guard(PointL(x, y), Direction.NORTH)
-                    }
-                }
-            }
-            throw IllegalArgumentException("No guard found")
-        }
+        fun findGuard(): Guard =
+            input.find('^')?.let { Guard(it, Direction.NORTH) } ?: throw IllegalArgumentException("No guard found")
     }
 
     private class MapWithObstacle(input: Array<CharArray>, private val additionalObstacle: PointL) : Map(input) {
@@ -46,13 +40,6 @@ object Day06 {
         }
     }
 
-    private enum class Direction(val delta: PointL) {
-        NORTH(PointL(0, -1)),
-        EAST(PointL(1, 0)),
-        SOUTH(PointL(0, 1)),
-        WEST(PointL(-1, 0)),
-    }
-
     private fun PointL.isWithin(map: Map) = this.isWithin(map.grid)
 
     private class Guard(var position: PointL, var direction: Direction) {
@@ -61,12 +48,7 @@ object Day06 {
             var possibleDirection = direction
             var possiblePosition = position + possibleDirection.delta
             while (possiblePosition.isWithin(map) && map.get(possiblePosition.x, possiblePosition.y) == '#') {
-                possibleDirection = when (possibleDirection) {
-                    Direction.NORTH -> Direction.EAST
-                    Direction.EAST -> Direction.SOUTH
-                    Direction.SOUTH -> Direction.WEST
-                    Direction.WEST -> Direction.NORTH
-                }
+                possibleDirection = possibleDirection.rotateClockwise()
                 if (possibleDirection == direction) {
                     throw IllegalArgumentException("Impossible to move, blocked in all directions")
                 }

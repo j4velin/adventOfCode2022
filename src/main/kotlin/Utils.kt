@@ -133,8 +133,9 @@ fun Iterable<PointL>.areaWithin(): Long {
     } else {
         this
     }
-    return abs(actualList.windowed(2, 1)
-        .sumOf { points -> (points.first().y + points.last().y) * (points.first().x - points.last().x) }) / 2L
+    return abs(
+        actualList.windowed(2, 1)
+            .sumOf { points -> (points.first().y + points.last().y) * (points.first().x - points.last().x) }) / 2L
 }
 
 
@@ -211,6 +212,22 @@ fun List<String>.to2dCharArray(ignore: Char? = null): Array<CharArray> {
     return array
 }
 
+/**
+ * @return the position of [char] or null, if it was not found
+ */
+fun Array<CharArray>.find(char: Char): PointL? {
+    val maxX = first().size - 1
+    val maxY = size - 1
+    for (x in 0..<maxX) {
+        for (y in 0..<maxY) {
+            if (this[x][y] == char) {
+                return PointL(x, y)
+            }
+        }
+    }
+    return null
+}
+
 inline fun <reified T : Any> List<String>.to2dArray(ignore: Char? = null, mapper: (Char) -> T) =
     to2dCharArray(ignore).map { chars -> chars.map(mapper).toTypedArray() }.toTypedArray()
 
@@ -252,3 +269,17 @@ fun LongRange.cut(other: LongRange): Sequence<LongRange> = sequence {
 }
 
 fun LongRange.overlaps(other: LongRange) = this.first <= other.last && other.first <= this.last
+
+enum class Direction(val delta: PointL) {
+    NORTH(PointL(0, -1)),
+    EAST(PointL(1, 0)),
+    SOUTH(PointL(0, 1)),
+    WEST(PointL(-1, 0));
+
+    fun rotateClockwise() = when (this) {
+        NORTH -> EAST
+        EAST -> SOUTH
+        SOUTH -> WEST
+        WEST -> NORTH
+    }
+}
