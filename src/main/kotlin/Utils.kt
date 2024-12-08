@@ -5,6 +5,9 @@ import java.util.*
 import kotlin.math.abs
 import kotlin.math.absoluteValue
 
+const val allDigits = "0123456789"
+const val allLetters = "abcdefghijklmnopqrstuvwxyz"
+
 /**
  * Reads lines from the given input txt file.
  */
@@ -91,6 +94,8 @@ data class PointL(val x: Long, val y: Long) {
     }
 
     infix operator fun plus(other: PointL) = move(other.x, other.y)
+    infix operator fun minus(other: PointL) = move(-other.x, -other.y)
+    infix operator fun times(factor: Int) = PointL(x * factor, y * factor)
 
     /**
      * @param dx the delta in x direction
@@ -103,6 +108,9 @@ data class PointL(val x: Long, val y: Long) {
     fun isWithin(grid: Pair<PointL, PointL>) =
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
 
+    /**
+     * @return manhattan distance to [other]
+     */
     fun distanceTo(other: PointL) = abs(x - other.x) + abs(y - other.y)
 }
 
@@ -227,6 +235,32 @@ fun Array<CharArray>.find(char: Char): PointL? {
     }
     return null
 }
+
+/**
+ * @return all the positions in the 2D map, which contain a character from [chars], mapped to this character
+ */
+fun Array<CharArray>.findAll(chars: CharArray): Map<PointL, Char> {
+    val maxX = first().size - 1
+    val maxY = size - 1
+    val map = mutableMapOf<PointL, Char>()
+    for (x in 0..<maxX) {
+        for (y in 0..<maxY) {
+            if (this[x][y] in chars) {
+                map[PointL(x, y)] = this[x][y]
+            }
+        }
+    }
+    return map
+}
+
+val Array<CharArray>.maxX: Int
+    get() = this.first().size - 1
+val Array<CharArray>.maxY: Int
+    get() = this.size - 1
+
+
+val Array<CharArray>.grid: Pair<PointL, PointL>
+    get() = PointL(0, 0) to PointL(maxX, maxY)
 
 inline fun <reified T : Any> List<String>.to2dArray(ignore: Char? = null, mapper: (Char) -> T) =
     to2dCharArray(ignore).map { chars -> chars.map(mapper).toTypedArray() }.toTypedArray()
