@@ -85,32 +85,29 @@ object Day09 {
                         }
 
                         // combine new free space areas
-                        if (diskLayout[rightIndex - 1 + added] is Free) {
-                            val newFree =
-                                diskLayout[rightIndex - 1 + added].size + diskLayout[rightIndex + added].size
-                            // keep one with size=0 so we don't need to manage new indices again
-                            diskLayout.set(
-                                index = rightIndex - 1 + added,
-                                element = Free(size = 0)
-                            )
-                            diskLayout.set(
-                                index = rightIndex + added,
-                                element = Free(size = newFree)
-                            )
+                        var distance = 1
+                        val combine: (Int) -> Boolean = { otherIndex ->
+                            if (otherIndex < diskLayout.size && diskLayout[otherIndex] is Free) {
+                                val newFree =
+                                    diskLayout[otherIndex].size + diskLayout[rightIndex + added].size
+                                // keep one with size=0 so we don't need to manage new indices again
+                                diskLayout.set(
+                                    index = otherIndex,
+                                    element = Free(size = 0)
+                                )
+                                diskLayout.set(
+                                    index = rightIndex + added,
+                                    element = Free(size = newFree)
+                                )
+                                true
+                            } else {
+                                false
+                            }
                         }
-                        if (rightIndex + 1 + added < diskLayout.size && diskLayout[rightIndex + 1 + added] is Free) {
-                            val newFree =
-                                diskLayout[rightIndex + 1 + added].size + diskLayout[rightIndex + added].size
-                            // keep one with size=0 so we don't need to manage new indices again
-                            diskLayout.set(
-                                index = rightIndex + 1 + added,
-                                element = Free(size = 0)
-                            )
-                            diskLayout.set(
-                                index = rightIndex + added,
-                                element = Free(size = newFree)
-                            )
-                        }
+                        // TODO: we should probably increase the distance to check if there are more areas to consolidate
+                        // but somehow that fails on my input and it already works with just one combining loop...
+                        combine(rightIndex - distance + added)
+                        combine(rightIndex + distance + added)
                     }
                 }
             }
