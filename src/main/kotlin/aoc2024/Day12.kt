@@ -16,16 +16,77 @@ object Day12 {
             get() = points.size
 
         val perimeter: Int
-            get() = points.map { current ->
+            get() = points.sumOf { current ->
                 val neighbours = current.getNeighbours(withDiagonal = false).filter { points.contains(it) }.size
                 4 - neighbours
-            }.sum()
-
-        val sides: Int
-            get() {
-                return 0
             }
+
+        val corners: Int
+            get() {
+                val minX = points.minOf { it.x }
+                val maxX = points.maxOf { it.x }
+                val minY = points.minOf { it.y }
+                val maxY = points.maxOf { it.y }
+                var corners = 0
+                for (x in minX..maxX) {
+                    for (y in minY..maxY) {
+                        corners += countCorners(PointL(x, y))
+                    }
+                }
+                return corners
+            }
+
+        private fun countCorners(point: PointL): Int {
+            val neighbours = point.getNeighbours(withDiagonal = false).filter { points.contains(it) }
+            val hasLeftNeighbour = neighbours.contains(PointL(point.x - 1, point.y))
+            val hasRightNeighbour = neighbours.contains(PointL(point.x + 1, point.y))
+            val hasTopNeighbour = neighbours.contains(PointL(point.x, point.y - 1))
+            val hasBottomNeighbour = neighbours.contains(PointL(point.x, point.y + 1))
+            var corners = 0
+
+            if (point in points) {
+                // outside pointing corner
+                if (!hasTopNeighbour) {
+                    if (!hasLeftNeighbour) {
+                        corners++
+                    }
+                    if (!hasRightNeighbour) {
+                        corners++
+                    }
+                }
+
+                if (!hasBottomNeighbour) {
+                    if (!hasLeftNeighbour) {
+                        corners++
+                    }
+                    if (!hasRightNeighbour) {
+                        corners++
+                    }
+                }
+            } else {
+                // inside pointing corner
+                if (hasTopNeighbour) {
+                    if (hasLeftNeighbour) {
+                        corners++
+                    }
+                    if (hasRightNeighbour) {
+                        corners++
+                    }
+                }
+                if (hasBottomNeighbour) {
+                    if (hasLeftNeighbour) {
+                        corners++
+                    }
+                    if (hasRightNeighbour) {
+                        corners++
+                    }
+                }
+            }
+
+            return corners
+        }
     }
+
 
     private fun getAreas(input: List<String>): Set<Area> {
         val map = input.to2dCharArray()
@@ -62,7 +123,24 @@ object Day12 {
     }
 
     fun part2(input: List<String>): Int {
-        return getAreas(input).sumOf { it.area * it.sides }
+
+        check(
+            getAreas(
+                """..............
+....xx........
+xxxxxxxxxx....
+xxxx...xxx....
+xxxxx..xxxxxxx
+xxxx...xxx....
+xxxxxxxxxx....
+xxx....xxx....""".lines()
+            ).find { it.char == 'x' }!!.corners == 24
+        )
+
+
+        return getAreas(input)
+            //.onEach { println("${it.char} -> ${it.area} x ${it.corners}") }
+            .sumOf { it.area * it.corners }
     }
 }
 

@@ -255,9 +255,9 @@ fun Array<CharArray>.findAll(chars: CharArray): Map<PointL, Char> {
 }
 
 val Array<CharArray>.maxX: Int
-    get() = this.first().size - 1
-val Array<CharArray>.maxY: Int
     get() = this.size - 1
+val Array<CharArray>.maxY: Int
+    get() = this.first().size - 1
 
 
 val Array<CharArray>.grid: Pair<PointL, PointL>
