@@ -96,6 +96,7 @@ data class PointL(val x: Long, val y: Long) {
     infix operator fun plus(other: PointL) = move(other.x, other.y)
     infix operator fun minus(other: PointL) = move(-other.x, -other.y)
     infix operator fun times(factor: Int) = PointL(x * factor, y * factor)
+    infix operator fun times(factor: Long) = PointL(x * factor, y * factor)
 
     /**
      * @param dx the delta in x direction
