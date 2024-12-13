@@ -37,11 +37,17 @@ object Day12 {
             }
 
         private fun countCorners(point: PointL): Int {
-            val neighbours = point.getNeighbours(withDiagonal = false).filter { points.contains(it) }
+            val neighbours = point.getNeighbours(withDiagonal = true).filter { points.contains(it) }
             val hasLeftNeighbour = neighbours.contains(PointL(point.x - 1, point.y))
             val hasRightNeighbour = neighbours.contains(PointL(point.x + 1, point.y))
             val hasTopNeighbour = neighbours.contains(PointL(point.x, point.y - 1))
             val hasBottomNeighbour = neighbours.contains(PointL(point.x, point.y + 1))
+
+            val hasTopRightNeighbour = neighbours.contains(PointL(point.x + 1, point.y - 1))
+            val hasTopLeftNeighbour = neighbours.contains(PointL(point.x - 1, point.y - 1))
+            val hasBottomRightNeighbour = neighbours.contains(PointL(point.x + 1, point.y + 1))
+            val hasBottomLeftNeighbour = neighbours.contains(PointL(point.x - 1, point.y + 1))
+
             var corners = 0
 
             if (point in points) {
@@ -63,23 +69,19 @@ object Day12 {
                         corners++
                     }
                 }
-            } else {
+
                 // inside pointing corner
-                if (hasTopNeighbour) {
-                    if (hasLeftNeighbour) {
-                        corners++
-                    }
-                    if (hasRightNeighbour) {
-                        corners++
-                    }
+                if (!hasTopRightNeighbour && hasTopNeighbour && hasRightNeighbour) {
+                    corners++
                 }
-                if (hasBottomNeighbour) {
-                    if (hasLeftNeighbour) {
-                        corners++
-                    }
-                    if (hasRightNeighbour) {
-                        corners++
-                    }
+                if (!hasTopLeftNeighbour && hasTopNeighbour && hasLeftNeighbour) {
+                    corners++
+                }
+                if (!hasBottomRightNeighbour && hasBottomNeighbour && hasRightNeighbour) {
+                    corners++
+                }
+                if (!hasBottomLeftNeighbour && hasBottomNeighbour && hasLeftNeighbour) {
+                    corners++
                 }
             }
 
