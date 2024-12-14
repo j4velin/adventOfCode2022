@@ -101,6 +101,7 @@ data class PointL(val x: Long, val y: Long) {
     infix operator fun plus(other: PointL) = move(other.x, other.y)
     infix operator fun minus(other: PointL) = move(-other.x, -other.y)
     infix operator fun times(factor: Int) = PointL(x * factor, y * factor)
+    infix operator fun times(factor: Long) = PointL(x * factor, y * factor)
     infix operator fun rem(other: PointL) = PointL(x modulo other.x, y modulo other.y)
 
     /**
@@ -249,8 +250,8 @@ fun Array<CharArray>.findAll(chars: CharArray): Map<PointL, Char> {
     val maxX = first().size - 1
     val maxY = size - 1
     val map = mutableMapOf<PointL, Char>()
-    for (x in 0..<maxX) {
-        for (y in 0..<maxY) {
+    for (x in 0..maxX) {
+        for (y in 0..maxY) {
             if (this[x][y] in chars) {
                 map[PointL(x, y)] = this[x][y]
             }
@@ -260,9 +261,9 @@ fun Array<CharArray>.findAll(chars: CharArray): Map<PointL, Char> {
 }
 
 val Array<CharArray>.maxX: Int
-    get() = this.first().size - 1
-val Array<CharArray>.maxY: Int
     get() = this.size - 1
+val Array<CharArray>.maxY: Int
+    get() = this.first().size - 1
 
 
 val Array<CharArray>.grid: Pair<PointL, PointL>
@@ -277,6 +278,50 @@ inline fun <reified T : Any> List<String>.to2dArray(ignore: Char? = null, mapper
 
 fun List<String>.to2dIntArray(ignore: Char? = null) =
     to2dCharArray(ignore).map { chars -> chars.map { it.digitToInt() }.toIntArray() }.toTypedArray()
+
+fun Array<CharArray>.get(x: Long, y: Long): Char = this[x.toInt()][y.toInt()]
+
+/**
+ * Simple recursive breadth first search
+ *
+ * @param start                 the starting point
+ * @param withDiagonal          true, to also allow diagonal paths (default: false)
+ * @param validGrid             the grid to search for neighbours in (default: whole map)
+ * @param neighbourCondition    optional condition to only allow specific neighbours.
+ *                              Receives the current and the potential neighbour as parameter
+ * @param targetCondition       condition to determine the "end" of the search.
+ *                              Receives the current position as parameter
+ *
+ * @return a list of paths (=list of positions) from [start] to points meeting the [targetCondition]
+ */
+fun Array<CharArray>.bfs(
+    start: PointL,
+    withDiagonal: Boolean = false,
+    validGrid: Pair<PointL, PointL> = Pair(PointL(0, 0), PointL(maxX, maxY)),
+    neighbourCondition: (PointL, PointL) -> Boolean = { _, _ -> true },
+    targetCondition: (PointL) -> Boolean,
+): List<List<PointL>> {
+    return bfsRec(emptyList(), start, targetCondition, neighbourCondition, withDiagonal, validGrid)
+}
+
+private fun Array<CharArray>.bfsRec(
+    pathSoFar: List<PointL>,
+    current: PointL,
+    targetCondition: (PointL) -> Boolean,
+    neighbourCondition: (PointL, PointL) -> Boolean,
+    withDiagonal: Boolean,
+    validGrid: Pair<PointL, PointL>,
+): List<List<PointL>> {
+    return if (targetCondition(current)) {
+        listOf(pathSoFar + current)
+    } else {
+        val neighbours = current.getNeighbours(withDiagonal, validGrid).filter { neighbourCondition(current, it) }
+        neighbours.flatMap {
+            bfsRec(pathSoFar + current, it, targetCondition, neighbourCondition, withDiagonal, validGrid)
+        }
+    }
+}
+
 
 fun Array<CharArray>.print() {
     val maxX = size - 1
