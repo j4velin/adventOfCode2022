@@ -19,8 +19,13 @@ fun readInput(name: String, year: Int = 2021) = File("src/main/kotlin/aoc$year",
 fun String.md5() = BigInteger(1, MessageDigest.getInstance("MD5").digest(toByteArray())).toString(16).padStart(32, '0')
 
 
-infix fun Int.modulo(mod: Int) = if (this > mod) this % mod else this
-infix fun Long.modulo(mod: Long) = if (this > mod) this % mod else this
+infix fun Int.modulo(mod: Int) = (this.toLong() modulo mod.toLong()).toInt()
+
+infix fun Long.modulo(mod: Long) = if (this > mod || this < 0) {
+    val re = this % mod
+    if (re < 0) re + mod
+    else re
+} else this
 
 /**
  * Generates a "cartesian product" of two sequences
@@ -96,6 +101,7 @@ data class PointL(val x: Long, val y: Long) {
     infix operator fun plus(other: PointL) = move(other.x, other.y)
     infix operator fun minus(other: PointL) = move(-other.x, -other.y)
     infix operator fun times(factor: Int) = PointL(x * factor, y * factor)
+    infix operator fun rem(other: PointL) = PointL(x modulo other.x, y modulo other.y)
 
     /**
      * @param dx the delta in x direction
