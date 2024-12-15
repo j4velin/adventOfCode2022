@@ -231,8 +231,8 @@ fun List<String>.to2dCharArray(ignore: Char? = null): Array<CharArray> {
  * @return the position of [char] or null, if it was not found
  */
 fun Array<CharArray>.find(char: Char): PointL? {
-    val maxX = first().size - 1
-    val maxY = size - 1
+    val maxX = size - 1
+    val maxY = first().size - 1
     for (x in 0..<maxX) {
         for (y in 0..<maxY) {
             if (this[x][y] == char) {
@@ -247,8 +247,8 @@ fun Array<CharArray>.find(char: Char): PointL? {
  * @return all the positions in the 2D map, which contain a character from [chars], mapped to this character
  */
 fun Array<CharArray>.findAll(chars: CharArray): Map<PointL, Char> {
-    val maxX = first().size - 1
-    val maxY = size - 1
+    val maxX = size - 1
+    val maxY = first().size - 1
     val map = mutableMapOf<PointL, Char>()
     for (x in 0..maxX) {
         for (y in 0..maxY) {
@@ -322,7 +322,6 @@ private fun Array<CharArray>.bfsRec(
     }
 }
 
-
 fun Array<CharArray>.print() {
     val maxX = size - 1
     val maxY = first().size - 1
@@ -332,6 +331,19 @@ fun Array<CharArray>.print() {
             print(this[x][y])
         }
         println("]")
+    }
+}
+
+fun Pair<PointL, PointL>.print(things: Collection<PointL>) = this.print(mapOf('x' to things))
+
+fun Pair<PointL, PointL>.print(things: Map<Char, Collection<PointL>>, default: Char = ' ') {
+    for (y in 0..this.second.y) {
+        for (x in 0..this.second.x) {
+            val current = PointL(x, y)
+            val print = things.entries.filter { it.value.contains(current) }.map { it.key }.firstOrNull() ?: default
+            print(print)
+        }
+        println()
     }
 }
 
@@ -366,5 +378,15 @@ enum class Direction(val delta: PointL) {
         EAST -> SOUTH
         SOUTH -> WEST
         WEST -> NORTH
+    }
+
+    companion object {
+        fun fromChar(char: Char) = when (char) {
+            '^' -> NORTH
+            '>' -> EAST
+            'v' -> SOUTH
+            '<' -> WEST
+            else -> throw IllegalArgumentException("Not a direction: $char")
+        }
     }
 }

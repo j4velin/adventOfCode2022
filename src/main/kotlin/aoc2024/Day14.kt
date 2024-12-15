@@ -1,6 +1,7 @@
 package aoc2024
 
 import PointL
+import print
 import readInput
 
 object Day14 {
@@ -59,17 +60,8 @@ object Day14 {
 
     private fun print(robots: List<Robot>, mapSize: PointL) {
         val positions = robots.map { it.currentPosition }
-        for (y in 0..mapSize.y) {
-            for (x in 0..mapSize.x) {
-                val current = PointL(x, y)
-                when {
-                    x == mapSize.x / 2 -> print("|")
-                    positions.contains(current) -> print("x")
-                    else -> print(" ")
-                }
-            }
-            println()
-        }
+        val grid = Pair(PointL(0, 0), mapSize)
+        grid.print(positions)
     }
 
     fun part2(input: List<String>, mapSize: PointL): Int {
