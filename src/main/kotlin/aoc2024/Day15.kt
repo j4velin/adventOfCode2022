@@ -65,10 +65,99 @@ object Day15 {
         }
     }
 
+    private class MapV2(
+        private var robot: PointL,
+        private val boxesLeft: MutableSet<PointL>,
+        private val boxesRight: MutableSet<PointL>,
+        private val walls: Set<PointL>,
+        private val grid: Pair<PointL, PointL>,
+    ) {
+
+        companion object {
+            fun fromString(input: List<String>): MapV2 {
+                val map = input.to2dCharArray()
+                val robotPosition = map.find('@') ?: throw IllegalArgumentException("no robot found")
+                val boxLeftPositions = map.findAll("[".toCharArray())
+                val boxRightPositions = map.findAll("]".toCharArray())
+                val wallPositions = map.findAll("#".toCharArray())
+                return MapV2(
+                    robot = robotPosition,
+                    boxesLeft = boxLeftPositions.keys.toMutableSet(),
+                    boxesRight = boxRightPositions.keys.toMutableSet(),
+                    walls = wallPositions.keys,
+                    grid = map.grid
+                )
+            }
+        }
+
+        val gps: List<Long>
+            get() = boxesLeft.map { 100 * it.y + it.x }
+
+        private tailrec fun canMove(
+            points: List<PointL>,
+            direction: Direction,
+            boxesToMove: Set<PointL>
+        ): Pair<Boolean, Set<PointL>> {
+            val next = points.map { it + direction.delta }
+            return if (next.any { it in walls }) {
+                false to emptySet()
+            } else {
+                val boxLeftHits = next.filter { it in boxesLeft }
+                val boxRightHits = next.filter { it in boxesRight }
+                if (boxLeftHits.isEmpty() && boxRightHits.isEmpty()) {
+                    true to boxesToMove
+                } else {
+                    val newBoxes = boxLeftHits.flatMap { listOf(it, PointL(it.x + 1, it.y)) } +
+                            boxRightHits.flatMap { listOf(it, PointL(it.x - 1, it.y)) }
+                    canMove(
+                        points = newBoxes.filter { it !in points },
+                        direction = direction,
+                        boxesToMove + newBoxes,
+                    )
+                }
+            }
+        }
+
+        fun move(direction: Direction) {
+            val delta = direction.delta
+            val nextRobotPosition = robot + delta
+
+            val (canMove, toMove) = canMove(listOf(robot), direction, emptySet())
+
+            if (canMove) {
+                robot = nextRobotPosition
+                toMove.forEach {
+                    boxesLeft.remove(it)
+                    boxesRight.remove(it)
+                }
+                val toMoveByY = toMove.map { it + delta }.groupBy { it.y }
+                toMoveByY.values.forEach { points ->
+                    val sortedByX = points.sortedBy { it.x }
+                    var left = true
+                    sortedByX.forEach {
+                        if (left)
+                            boxesLeft.add(it)
+                        else
+                            boxesRight.add(it)
+                        left = !left
+                    }
+                }
+            }
+        }
+
+        fun print() {
+            grid.print(
+                mapOf('[' to boxesLeft, ']' to boxesRight, '#' to walls, '@' to listOf(robot)),
+                default = '.'
+            )
+        }
+    }
+
     fun part1(input: List<String>): Int {
         val (mapStr, directionsStr) = input.separateBy { it.isEmpty() }
         val map = Map.fromString(mapStr)
         val directions = directionsStr.joinToString(separator = "").map { Direction.fromChar(it) }
+
         directions.forEach { direction ->
             map.move(direction)
         }
@@ -77,7 +166,20 @@ object Day15 {
     }
 
     fun part2(input: List<String>): Int {
-         return 0
+        val (mapStr, directionsStr) = input.separateBy { it.isEmpty() }
+        val map = MapV2.fromString(mapStr.map {
+            it.replace("#", "##")
+                .replace("O", "[]")
+                .replace(".", "..")
+                .replace("@", "@.")
+        })
+        val directions = directionsStr.joinToString(separator = "").map { Direction.fromChar(it) }
+
+        directions.forEach { direction ->
+            map.move(direction)
+        }
+
+        return map.gps.sum().toInt()
     }
 }
 
@@ -87,7 +189,7 @@ fun main() {
 
     val testInput = readInput("Day15_test", 2024)
     check(Day15.part1(testInput) == 10092)
-    //check(Day15.part2(testInput) == 9021)
+    check(Day15.part2(testInput) == 9021)
 
     val input = readInput("Day15", 2024)
     println(Day15.part1(input))
