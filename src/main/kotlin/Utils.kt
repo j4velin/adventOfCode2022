@@ -304,7 +304,50 @@ fun Array<CharArray>.bfs(
     return bfsRec(emptyList(), start, targetCondition, neighbourCondition, withDiagonal, validGrid)
 }
 
-private fun Array<CharArray>.bfsRec(
+fun bfs(
+    start: PointL,
+    withDiagonal: Boolean = false,
+    validGrid: Pair<PointL, PointL>,
+    neighbourCondition: (PointL, PointL) -> Boolean = { _, _ -> true },
+    targetCondition: (PointL) -> Boolean,
+): List<List<PointL>> {
+    return bfsRec(emptyList(), start, targetCondition, neighbourCondition, withDiagonal, validGrid)
+}
+
+fun dijkstra(
+    start: PointL,
+    withDiagonal: Boolean = false,
+    validGrid: Pair<PointL, PointL>,
+    neighbourCondition: (PointL, PointL) -> Boolean = { _, _ -> true },
+    targetCondition: (PointL) -> Boolean,
+    costFunction: (List<PointL>, Long, PointL) -> Long = { _, currentCost, _ -> currentCost + 1L },
+): Pair<Long, List<PointL>> {
+    val minPaths = mutableMapOf<PointL, Pair<Long, List<PointL>>>(start to (0L to emptyList()))
+    val toVisit = mutableMapOf<PointL, Pair<Long, List<PointL>>>(start to (0L to emptyList()))
+    while (toVisit.isNotEmpty()) {
+        val current = toVisit.minBy { it.value.first }
+
+        if (targetCondition(current.key)) {
+            return current.value
+        }
+
+        toVisit.remove(current.key)
+
+        current.key.getNeighbours(withDiagonal, validGrid).filter { neighbourCondition(current.key, it) }
+            .forEach { neighbour ->
+                val cost = costFunction(current.value.second, current.value.first, neighbour)
+                val currentMinCost = minPaths[neighbour]?.first ?: Long.MAX_VALUE
+                if (cost < currentMinCost) {
+                    val newPath = current.value.second + neighbour
+                    minPaths[neighbour] = cost to newPath
+                    toVisit[neighbour] = cost to newPath
+                }
+            }
+    }
+    return Long.MAX_VALUE to emptyList()
+}
+
+private fun bfsRec(
     pathSoFar: List<PointL>,
     current: PointL,
     targetCondition: (PointL) -> Boolean,
@@ -315,7 +358,8 @@ private fun Array<CharArray>.bfsRec(
     return if (targetCondition(current)) {
         listOf(pathSoFar + current)
     } else {
-        val neighbours = current.getNeighbours(withDiagonal, validGrid).filter { neighbourCondition(current, it) }
+        val neighbours = current.getNeighbours(withDiagonal, validGrid).filter { it !in pathSoFar }
+            .filter { neighbourCondition(current, it) }
         neighbours.flatMap {
             bfsRec(pathSoFar + current, it, targetCondition, neighbourCondition, withDiagonal, validGrid)
         }
