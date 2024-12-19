@@ -28,10 +28,7 @@ object Day19 {
         val towels = input.first().split(", ")
         val patterns = input.drop(2)
 
-        val regex = towels.joinToString(separator = "|", prefix = "(", postfix = ")*").toRegex()
-
-        return patterns.filter { regex.matches(it) }.withIndex()
-            .sumOf { pattern -> findAllMatches(pattern.value, towels, mutableMapOf()).toLong() }
+        return patterns.sumOf { pattern -> findAllMatches(pattern, towels, mutableMapOf()) }
     }
 }
 
