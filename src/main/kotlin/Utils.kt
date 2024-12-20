@@ -112,7 +112,7 @@ data class PointL(val x: Long, val y: Long) {
     fun move(dx: Long, dy: Long) = PointL(x + dx, y + dy)
     fun move(dx: Int, dy: Int) = move(dx.toLong(), dy.toLong())
 
-    fun isWithin(grid: Pair<PointL, PointL>) =
+    infix fun isWithin(grid: Pair<PointL, PointL>) =
         x >= grid.first.x && x <= grid.second.x && y >= grid.first.y && y <= grid.second.y
 
     /**
@@ -314,6 +314,21 @@ fun bfs(
     return bfsRec(emptyList(), start, targetCondition, neighbourCondition, withDiagonal, validGrid)
 }
 
+/**
+ * Simple recursive breadth first search
+ *
+ * @param start                 the starting point
+ * @param withDiagonal          true, to also allow diagonal paths (default: false)
+ * @param validGrid             the grid to search for neighbours in (default: whole map)
+ * @param neighbourCondition    optional condition to only allow specific neighbours.
+ *                              Receives the current and the potential neighbour as parameter
+ * @param targetCondition       condition to determine the "end" of the search.
+ *                              Receives the current position as parameter
+ * @param costFunction          a function to calculate the cost of a route. Receives the current path, the current cost
+ *                              so far and the next point
+ *
+ * @return the cost & the path (=list of positions) of the cheapest route from [start] to the point meeting the [targetCondition]
+ */
 fun dijkstra(
     start: PointL,
     withDiagonal: Boolean = false,
