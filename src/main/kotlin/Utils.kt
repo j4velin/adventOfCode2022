@@ -36,6 +36,14 @@ infix fun Long.modulo(mod: Long) = if (this > mod || this < 0) {
 fun <T, U> Sequence<T>.withEachOf(other: Sequence<U>): Sequence<Pair<T, U>> = flatMap { t -> other.map { u -> t to u } }
 
 /**
+ * Generates a "cartesian product" of two collections
+ *
+ * @param other the collection to 'mix' with this
+ * @return a collection of the cartesian product of [this] and [other]
+ */
+fun <T, U> Collection<T>.withEachOf(other: Collection<U>): Collection<Pair<T, U>> = flatMap { t -> other.map { u -> t to u } }
+
+/**
  * Data class representing a point on a 2D area
  */
 @Deprecated("Use PointL class instead", ReplaceWith("PointL"))
